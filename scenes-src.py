@@ -16,7 +16,7 @@ class Scene:
     # Image paths for scenes
     loadScreen = pygame.image.load('images/start-screen.png')
     temple_entrance = pygame.image.load('images/temple-entrance.png')
-    leaving_image = pygame.image.load('images/leaving-trail.jpg')
+    leaving_image = pygame.image.load('images/cowards-path.png')
     trial_gate = pygame.image.load('images/trial-gate.png')
     platform = pygame.image.load('images/trial1-portals.png')
     
@@ -35,12 +35,6 @@ class Scene:
     # make it so that if the player reaches the boss fight while taking the life portal, they are severely disadvangtaged and barely live after the battle.
     # for the cowards end make it so your peers eventuually overtake you and your life ends in a dasterly plot for your resources.
     dialogue = {
-        "start":
-            {
-                'prompt':"Before you looms a dreadful gate radiating spiritual energy. Your fellow sect members were right, the trial grounds of the Abyss truly exist." +
-                            " Should you take the risk of undergoing the trial?",
-                'options':['Enter the gate regardless of the potential danger...', 'Leave in haste and head back to the safety of the sect.']
-            },
         "temple":
             {
                 'prompt':"Venturing on your first adventure beyond the confines of the sect, you stumble upon an eerie, abandoned temple." +
@@ -54,8 +48,14 @@ class Scene:
             },
         "coward":
             {
-                'prompt':"Everything you wish to accomplish is on the other side of fear.",
-                'options':['Return with renewed vigor.', 'Continue back to the sect...']
+                'prompt':"As you stand on the path back to the sect, you hear a distant voice resounding through your mind." +
+                         " 'Everything you wish to accomplish is on the other side of fear.'",
+                'pondering':"You pause upon the path towards your sect, your heart heavy with the weight of indecision." +
+                            " As you stand there, the surroundings seem to hold their breath, allowing you a moment of introspection." +
+                            " The path back to the sect beckons, offering comfort and familiarity, while the path towards the temple " +
+                            "promises the unknown, challenges, and the potential for cultivation growth.",
+                'options':['Summon your courage and turn back to the temple.', 'Continue along the path to the safety of your sect...', 
+                           "Pause and reflect upon the mysterious voice's words."]
             },
         "gate":
             {
@@ -124,15 +124,12 @@ class Scene:
                             if option.scene is not None:
                                 
                                 if option.scene == 0:
-                                    
                                     pygame.quit()
                                     
                                 elif option.scene == 'examine':
-                                    
                                     self.examine_surroundings()
                                     
                                 elif option.scene == 'previous scene':
-                                    
                                     return self.previous_scene()
                                 
                                 else:
@@ -223,11 +220,16 @@ class Scene:
             
     def update_text_box(self):
         
+        print("Updating text box.")
         # Redraw the text box to clear it
         self.surface.blit(self.scaled_dialogueBox, (0, 150))
         
         # Draw clickable text options
-        self.clickable_options[3].draw(self.surface)
+        if isinstance(self, CowardScene):
+            self.clickable_options[0].draw(self.surface)
+            self.clickable_options[1].draw(self.surface)
+        else:
+            self.clickable_options[3].draw(self.surface)
         
         # Draw text prompt
         self.create_text_box(self.surface, self.prompt, self.font)
@@ -362,8 +364,12 @@ class CowardScene (Scene):
     def __init__(self) -> None:
         
         self.prompt = self.dialogue['coward']['prompt']
+        self.pondering_text = self.dialogue['coward']['pondering']
         self.options = self.dialogue['coward']['options']
         self.image = self.leaving_image
+        
+        # Previous scene data
+        self.previous_prompt = None
         
         # Font for text
         self.font_path = self.default_font
@@ -376,6 +382,22 @@ class CowardScene (Scene):
         self.clickable_options = []
         self.clickable_options.append(Clickable_text(self.options[0], 470, 560, self.font, "black", 'temple'))
         self.clickable_options.append(Clickable_text(self.options[1], 470, 600, self.font, "black", 'start'))
+        self.clickable_options.append(Clickable_text(self.options[2], 470, 640, self.font, (0, 0, 0), 'examine'))
+        
+    def examine_surroundings(self):
+        
+        print('examining')
+        # Update Prompt to the pondering text and create new clickable options for the user to choose from.
+        self.previous_prompt = self.prompt
+        self.prompt = self.pondering_text
+        
+        # Clears clickable_options to avoid overlapping text options
+        self.clickable_options.clear()
+        self.clickable_options.append(Clickable_text("Head back to the temple.", 470, 600, self.font, (0, 0, 0), 'temple'))
+        self.clickable_options.append(Clickable_text("Continue along the coward's path.", 470, 640, self.font, (0, 0, 0), 'start'))
+        
+        # Update the text box with the new prompt 
+        self.update_text_box()
 
 class Trial1 (Scene):
     
