@@ -1,12 +1,15 @@
 import pygame
 from utilitiesMA import Clickable_text
 
+# Current to do list:
+# change the way you iterate through the clickable_options dict to get the text options (done)
+# create wisdom trial
+# create destruction trial
+
 class Scene:
     
     # File path for font library
     Haseyo_font = "Fonts\\AnnyeongHaseyo.ttf"
-    eternity_font = "Fonts/Eternity.ttf"
-    medusa_font = "Fonts/Medusa.otf"
     default_font = None
     
     # Image path for UI
@@ -15,10 +18,12 @@ class Scene:
     
     # Image paths for scenes
     loadScreen = pygame.image.load('images/start-screen.png')
+    startButton = pygame.image.load('images/start-button.png')
     temple_entrance = pygame.image.load('images/temple-entrance.png')
     leaving_image = pygame.image.load('images/cowards-path.png')
     trial_gate = pygame.image.load('images/trial-gate.png')
     platform = pygame.image.load('images/trial1-portals.png')
+    wisdom_trial = pygame.image.load('images/wisdom-dragon.png')
     
     # Surface variable
     surface = None
@@ -61,24 +66,77 @@ class Scene:
             {
                 'prompt':"You step inside, and before you looms a dreadful temple archway radiating a foreboding red glow. " +
                             "Sinister carvings of demonic creatures adorn the surroundings, and ancient etchings line the temple pillars." +
-                            " The rumors among your sect members were right, the trial grounds of the abyss truly exist.",
-                'options':['Enter the archway regardless of the potential danger...', 'Examine the etchings', 'Search the room']
-                # when you examine the etchings you find out that the trial is made up of three trials
+                            " The rumors among your sect members were right, the trial grounds of the abyss truly exist. As you walk further inside" +
+                            " the sound of the entrance slamming shut echos from behind, you are now trapped.",
+                'examine':"The etchings adorning the abyssal temple archway depict a haunting tapestry of ancient symbols and twisted patterns," +
+                            " seemingly carved by the claws of abyssal creatures. Intricate and foreboding, the etchings exude an aura of primal"+
+                            " power and enigmatic purpose. Each stroke reveals a glimpse into the unfathomable depths of the abyss, " +
+                            "as if warning those who dare to tread within of the perilous trials that lie ahead.",
+                'escape':"You quickly turn around to examine the now shut entrance, the faint orange glow of an array formation covers your only way out. " +
+                            "You attempt to find a way to the open the formation, however as you get close your sense of danger screams at you. " +
+                            "Quickly backing away, you turn towards your only way out...the mysterious archway.",
+                'options':['Enter the archway regardless of the potential danger...', 'Examine the etchings', 'Attempt to open the door and leave', 'Continue']
+                # when you examine the etchings you find a clue for the trials to come (the etching on the left side speak of great wisdom,
+                # while the etchings on the right hint at power through destruction)
+                # for this scene change the discription to include the door slamming shut behind you locking you in
+                # have an option for trying to find a way to escape, in which it will say 'there seems to be an Array formation blocking your way
+                # you try to find a way to open the formation, however your sense of danger screams at you as you get close...quickly backing away
+                # you turn towards your only way out...the gate.  
             },
         "trial1": #add another scene before the gat scene where you are traveling along a path and you arrive to a abyssal cathedral
             {
-                'prompt':"Entering the gate you find yourself faced with an expansive dark room with a stone platform in the center, with what looks like two portals" +
-                            " situated on each side, one glowing white, and one pitch black." +
-                            " You make out the words above each portal, 'Life' and 'Death' respectively.",
-                'options':['Life', 'Death']
+                'prompt':"Entering the archway, you find a descending staircase that guides you into the depths of darkness." +
+                            " As you venture downwards, a faint purple glow emerges, casting an eerie light on path ahead. " +
+                            "Reaching the bottom of the stairs, you are immediately confronted with two massive portals, pulsating with an " +
+                            "eerie, etheral glow. There are intricate carvngs depicting wisdom on the left portal, and" +
+                            " destruction on the right.",
+                'voice':"Abruptly, a deep almost demonic voice sounds out within your mind. \n" +
+                            "'Welcome, potential inheritor of the abyss. The Trials await, where destiny and power intertwine. " +
+                            "Choose your path wisely, for within each portal lies the path to ascendance or oblivion.'",
+                'options':['Wisdom', 'Destruction']
             },
-        "life portal":
+        "wisdom portal":
             {
-                'prompt':"Dark wisps swirl around the surrounding space, and screams of the damned fill your ears. You notice that your spirit is slowly dwindling. " +
-                            "Reminding you of your Master's advice to never let you spirit drop below a quarter, lest you wish to die a slow death.",
-                'options':['Power through the dreadful atmosphere and use it to temper your soul.', 'Head back through the portal.']
+                'prompt':"As you pass through your portal of choice, the world transforms around you. " +
+                            "A breathtaking landscape unfolds, adorned with stunning red trees that seem to glow with an otherworldly radiance. " +
+                            "The air is filled with the gentle sound of flowing water, drawing your attention to the serene waterfall ahead. " +
+                            "Amidst this serene setting, a colossal draconic demon beast looms, dwarfing the old temple beside it." +
+                            " Its imposing form exuding an aura of ancient knowledge and profound enlightenment.",
+                            
+                'beast':["Welcome, young mortal cultivator, to your first trial. Within this realm of wisdom and enlightenment, you shall" +
+                         " face a series of questions that delve deep into the essence of your very being. " +
+                         "Do well to offer answers that carry the weight of profound contemplation, for they" +
+                         " will shape not only the outcome of this trial but also your very fate." +
+                         " *The age-old demon beast reveals a sinister grin as his ominous words echo throughout the valley*" +
+                         " Shall we begin?",
+                         "Well done mortal, you have traversed the depths of wisdom and emerged victorious. " +
+                         "Your answers have demonstrated a profound understanding of the intricate balance between power and enlighenment." +
+                         " The abyss acknowledges your wisdom and rewards you accordingly. " +
+                         "May this triumph serve as a testament to your potential and ignite the flame of your journey." +
+                         " Yet, remember that the true test lies ahead. So prepare yourself well mortal, for the trials ahead" +
+                         " hold greater danger, but equally greater rewards."],
+                            
+                'options':['Power through the dreadful atmosphere and use it to temper your soul.', 'Head back through the portal.'],
+                
+                'questions':['What defines true strength: the ability to destroy or the ability to protect?', 
+                             "Can true enlightenment be achieved without facing the depths of one's own inner darkness?",
+                             "In the pursuit of immortality, what is the greatest sacrifice one must be willing to make?"],
+                
+                'answers':["True strength lies in the ability to wield destructive force.",
+                           "The mark of true strength is the ability to protect and nurture.",
+                           "Strength is defined by one's ability to adapt to any situation.",
+                           "True enlightenment comes from transcending darkness, not facing it.",
+                           "Facing one's inner darkness is a necessary step towards true enlightenment.",
+                           "Enlightenment can be achieved through various paths, darkness being just one of them.",
+                           "One must be willing to sacrifice personal relationships",
+                           "To relinquish one's humanity, embracing a path of detachment and isolation.",
+                           "Rid oneself of worldy desires and ambitions."]
+                
+                # trial of wisdom where a player must answer a series of thought-provoking questions and philosophical dilemmas.
+                # the player's answers determine their success in gaining the portal's wisdom (aka cultivation increase)
+                # have the monster give a brief summary of the type of person the player is after their answers to each question
             },
-        "death portal":
+        "destruction portal":
             {
                 'prompt':"Before you looms a dreadful gate radiating spiritual energy. Your fellow sect members were right, the trial grounds of the Abyss truly exist." +
                             " Should you take the risk of undergoing the trial?",
@@ -104,7 +162,7 @@ class Scene:
         mouse_pos = pygame.mouse.get_pos()
         
         # Creates color change hover effect
-        for option in self.clickable_options:
+        for option in self.clickable_options[self.transition_state]:
             option.hovering(mouse_pos)
     
         # Checks for mouse or keyboard input
@@ -117,7 +175,7 @@ class Scene:
                 
                 try:
                     
-                    for option in self.clickable_options:
+                    for option in self.clickable_options[self.transition_state]:
                         if event.button == 1 and option.was_clicked(mouse_pos):
                             print("Option clicked")
                             
@@ -132,6 +190,19 @@ class Scene:
                                 elif option.scene == 'previous scene':
                                     return self.previous_scene()
                                 
+                                elif option.scene == 'escape':
+                                    self.attempt_escape()
+                                
+                                elif option.scene == 'next':
+                                    if isinstance(self, WisdomScene):
+                                        self.next_text()
+                                    else:
+                                        self.next_prompt_state()
+                                
+                                elif option.scene in range(1, 6):
+                                    self.rating += option.scene
+                                    self.next_text()
+                          
                                 else:
                                     return option.scene   
                 except:
@@ -154,6 +225,25 @@ class Scene:
         # Update class surface
         self.surface = surface
         
+    def updateTransitionState(self, state_increment):
+        
+        # Hide previous text options
+        for option in self.clickable_options[self.transition_state]:
+            option.change_visibility()
+            
+        # store previous state and increment to next state of scene
+        self.previous_state = self.transition_state
+        self.transition_state += state_increment
+        
+        # Set new text options for current state of scene to visible
+        for option in self.clickable_options[self.transition_state]:
+            option.change_visibility()
+    
+    def initialize_options(self):
+        
+        for option in self.clickable_options[self.transition_state]:
+            option.change_visibility()
+            
     def drawUI(self, surface):
         
         if not isinstance(self, StartScene):
@@ -164,17 +254,18 @@ class Scene:
                 surface.blit(self.scaled_dialogueBox, (0, 150))
                 
                 # Draw clickable text options
-                if len(self.clickable_options) < 4:
-                    for option in self.clickable_options:
-                        option.draw(surface)
-                else:
-                    self.clickable_options[3].draw(surface)
+                for option in self.clickable_options[self.transition_state]:
+                    option.draw(surface)
                 
                 self.create_text_box(surface, self.prompt, self.font)
                 
         else:
+            # Draw start and exit buttons
+            surface.blit(self.startButton, (500, 580))
+            surface.blit(self.startButton, (500, 670))
+            
             # Draw clickable text options for start scene
-            for option in self.clickable_options:
+            for option in self.clickable_options[self.transition_state]:
                 if option is not None:
                     option.draw(surface)
                     
@@ -225,12 +316,9 @@ class Scene:
         self.surface.blit(self.scaled_dialogueBox, (0, 150))
         
         # Draw clickable text options
-        if isinstance(self, CowardScene):
-            self.clickable_options[0].draw(self.surface)
-            self.clickable_options[1].draw(self.surface)
-        else:
-            self.clickable_options[3].draw(self.surface)
-        
+        for option in self.clickable_options[self.transition_state]:
+            option.draw(self.surface)
+
         # Draw text prompt
         self.create_text_box(self.surface, self.prompt, self.font)
         
@@ -239,9 +327,17 @@ class Scene:
         # Restore the previous prompt
         self.prompt = self.previous_prompt
         
-        # Remove the clickable option for going back
-        self.clickable_options = [option for option in self.clickable_options if option.scene != "previous scene"]
+        # hide text options of current scene
+        for option in self.clickable_options[self.transition_state]:
+            option.change_visibility()
+            
+        # Restore transition state to previous scene
+        self.transition_state = self.previous_state
         
+        # make text options of previous scene visible
+        for option in self.clickable_options[self.transition_state]:
+            option.change_visibility()
+            
         # Return the scene ID of the previous scene
         return self.previous_scene_id
    
@@ -252,7 +348,9 @@ class SceneManager:
             'temple': TempleScene,
             'gate': GateScene,
             'trial1': Trial1,
-            'coward': CowardScene
+            'coward': CowardScene,
+            'wisdom': WisdomScene,
+            'destruction':DestructionScene
         }
         self.previous_scenes = list()
         self.current_scene = None
@@ -292,29 +390,46 @@ class SceneManager:
 
 class StartScene (Scene):
     def __init__(self) -> None:
-        self.start_button = "Begin Adventure"
-        self.exit_button = "Exit"
+        # Text for clickable options
+        self.start_button_text = "Begin Adventure"
+        self.exit_button_text = "Exit"
+        
+        # Images for scene
         self.image = self.loadScreen
+        
+        # Scene transition state variable
+        self.transition_state = 0
         
         # Font for text
         self.font_path = self.Haseyo_font
         self.font = pygame.font.Font(self.font_path, 35)
         
         # Option text
-        self.clickable_options = []
-        self.clickable_options.append(Clickable_text(self.start_button, 700, 360, self.font, "black", 'temple'))
-        self.clickable_options.append(Clickable_text(self.exit_button, 720, 390, self.font, "black", 0))
+        self.clickable_options = [
+            [   # first state options
+                Clickable_text(self.start_button_text, 604, 605, self.font, "black", 'temple'), 
+                Clickable_text(self.exit_button_text, 680, 695, self.font, "black", 0) 
+            ]
+        ]
+        
+        # Sets the options for the first scene to visible
+        self.initialize_options()
     
 class TempleScene (Scene):
+    
     def __init__(self) -> None:
         self.prompt = self.dialogue['temple']['prompt']
         self.examine_text = self.dialogue['temple']['examine']
         self.options = self.dialogue['temple']['options']
-        self.image = self.temple_entrance
+        self.image = self.temple_entrance 
+        
+        # Scene transition state variable
+        self.transition_state = 0
         
         # Holds the previous scene data 
         self.previous_prompt = None
         self.previous_scene_id = 'temple'
+        self.previous_state = 0
         
         # Font for text
         self.font_path = self.default_font
@@ -324,27 +439,52 @@ class TempleScene (Scene):
         self.drawUIDelay = 1.0
         
         # Option text
-        self.clickable_options = []
-        self.clickable_options.append(Clickable_text(self.options[0], 470, 560, self.font, "black", 'gate')) # Entering temple
-        self.clickable_options.append(Clickable_text(self.options[1], 470, 600, self.font, "black", 'examine')) # Examine surroundings
-        self.clickable_options.append(Clickable_text(self.options[2], 470, 640, self.font, "black", 'coward')) # Leave to sect
+        self.clickable_options = [
+            # first state options
+            [
+                Clickable_text(self.options[0], 470, 560, self.font, "black", 'gate'), # Entering temple
+                Clickable_text(self.options[1], 470, 600, self.font, "black", 'examine'), # Examine surroundings
+                Clickable_text(self.options[2], 470, 640, self.font, "black", 'coward') # Leave to sect
+            ],
+            # examine state options
+            [
+                Clickable_text("Continue.", 675, 670, self.font, (0, 0, 0), 'previous scene')
+            ]
+        ]
+        
+        # Sets the options for the first scene to visible
+        self.initialize_options()
         
     def examine_surroundings(self):
         
-        # Update Prompt to the examine text and create new clickable option to head back to main prompt.
+        # Update Prompt to the examine text
         self.previous_prompt = self.prompt
         self.prompt = self.examine_text
-        self.clickable_options.append(Clickable_text("Continue.", 675, 670, self.font, (0, 0, 0), 'previous scene'))
+        
+        # Update transition state
+        self.updateTransitionState(1)
         
         # Update the text box with the new prompt 
         self.update_text_box()
-              
+         
 class GateScene (Scene):
     
     def __init__(self) -> None:
+        
+        # Text and image variables
         self.prompt = self.dialogue['gate']['prompt']
+        self.examine_text = self.dialogue['gate']['examine']
+        self.escape_text = self.dialogue['gate']['escape']
         self.options = self.dialogue['gate']['options']
         self.image = self.trial_gate
+        
+        # Scene transition state variable
+        self.transition_state = 0
+        
+        # Previous scene data
+        self.previous_prompt = None
+        self.previous_scene_id = 'gate'
+        self.previous_state = 0
         
         # Font for text
         self.font_path = self.default_font
@@ -354,11 +494,53 @@ class GateScene (Scene):
         self.drawUIDelay = 1.0
         
         # Option text
-        self.clickable_options = []
-        self.clickable_options.append(Clickable_text(self.options[0], 470, 560, self.font, "black", 'trial1'))
-        self.clickable_options.append(Clickable_text(self.options[1], 470, 600, self.font, "black", 'coward'))
-
-
+        self.clickable_options = [
+            # first state options
+            [
+                Clickable_text(self.options[0], 465, 600, self.font, "black", 'trial1'), # enter archway
+                Clickable_text(self.options[1], 465, 640, self.font, "black", 'examine'), # examine etchings
+                Clickable_text(self.options[2], 465, 680, self.font, (0, 0, 0), 'escape') # Attempt to leave
+            ],
+            # examine state options
+            [
+                Clickable_text("Continue.", 675, 670, self.font, (0, 0, 0), 'previous scene')
+            ],
+            # escape state options
+            [
+                Clickable_text("Proceed through the archway.", 465, 600, self.font, (0, 0, 0), 'trial1'),
+                Clickable_text("Examine the etchings", 465, 640, self.font, (0, 0, 0), 'examine')
+            ]
+        ]
+        
+        # Sets the options for the first scene to visible
+        self.initialize_options()
+        
+    def examine_surroundings(self):
+        print('examining')
+        
+        # Update text box to examine text for the gate scene
+        self.previous_prompt = self.prompt
+        self.prompt = self.examine_text
+        
+        # Update transition state
+        if self.transition_state == 0:
+            self.updateTransitionState(1)
+        else:
+            self.updateTransitionState(-1)
+        
+        # Update the text box with the new prompt 
+        self.update_text_box()
+        
+    def attempt_escape(self):
+        print('escaping')
+        
+        # Update tet box to escape text for the gate scene
+        self.prompt = self.escape_text
+        
+        # Update transition state and text box
+        self.updateTransitionState(2)
+        self.update_text_box()
+        
 class CowardScene (Scene):
     
     def __init__(self) -> None:
@@ -368,8 +550,12 @@ class CowardScene (Scene):
         self.options = self.dialogue['coward']['options']
         self.image = self.leaving_image
         
+        # Scene transition state variable
+        self.transition_state = 0
+        
         # Previous scene data
         self.previous_prompt = None
+        self.previous_state = 0
         
         # Font for text
         self.font_path = self.default_font
@@ -379,10 +565,22 @@ class CowardScene (Scene):
         self.drawUIDelay = 1.0
         
         # Text options for user
-        self.clickable_options = []
-        self.clickable_options.append(Clickable_text(self.options[0], 470, 560, self.font, "black", 'temple'))
-        self.clickable_options.append(Clickable_text(self.options[1], 470, 600, self.font, "black", 'start'))
-        self.clickable_options.append(Clickable_text(self.options[2], 470, 640, self.font, (0, 0, 0), 'examine'))
+        self.clickable_options = [
+            # first state options
+            [
+                Clickable_text(self.options[0], 470, 560, self.font, "black", 'temple'), # Entering temple
+                Clickable_text(self.options[1], 470, 600, self.font, "black", 'start'), # Examine surroundings
+                Clickable_text(self.options[2], 470, 640, self.font, (0, 0, 0), 'examine') # Leave to sect
+            ],
+            # examine state options
+            [
+                Clickable_text("Head back to the temple.", 470, 600, self.font, (0, 0, 0), 'temple'),
+                Clickable_text("Continue along the coward's path.", 470, 640, self.font, (0, 0, 0), 'start')
+            ]
+        ]
+        
+        # Sets the options for the first scene to visible
+        self.initialize_options()
         
     def examine_surroundings(self):
         
@@ -390,11 +588,9 @@ class CowardScene (Scene):
         # Update Prompt to the pondering text and create new clickable options for the user to choose from.
         self.previous_prompt = self.prompt
         self.prompt = self.pondering_text
-        
-        # Clears clickable_options to avoid overlapping text options
-        self.clickable_options.clear()
-        self.clickable_options.append(Clickable_text("Head back to the temple.", 470, 600, self.font, (0, 0, 0), 'temple'))
-        self.clickable_options.append(Clickable_text("Continue along the coward's path.", 470, 640, self.font, (0, 0, 0), 'start'))
+   
+        # Update transition state
+        self.updateTransitionState(1)
         
         # Update the text box with the new prompt 
         self.update_text_box()
@@ -404,8 +600,13 @@ class Trial1 (Scene):
     def __init__(self) -> None:
         
         self.prompt = self.dialogue['trial1']['prompt']
+        self.next_prompt = self.dialogue['trial1']['voice']
         self.options = self.dialogue['trial1']['options']
         self.image = self.platform
+        
+        # Scene transition state variable
+        self.transition_state = 0
+        self.previous_state = 0
         
         self.font_path = self.default_font
         self.font = pygame.font.Font(self.font_path, 27)
@@ -413,16 +614,113 @@ class Trial1 (Scene):
         # Dialogue box delay in seconds
         self.drawUIDelay = 1.0
         
-        self.clickable_options = []
-        self.clickable_options.append(Clickable_text(self.options[0], 470, 560, self.font, "black", 'life'))
-        self.clickable_options.append(Clickable_text(self.options[1], 470, 600, self.font, "black", 'death'))
+        # Text options for user
+        self.clickable_options = [
+            # first state option
+            [
+                Clickable_text("Continue.", 675, 670, self.font, (0, 0, 0), 'next')
+            ],
+            # choice state options
+            [
+                Clickable_text(self.options[0] + " (left)", 465, 560, self.font, (0, 0, 0), 'wisdom'), # wisdom portal
+                Clickable_text(self.options[1] + " (right)", 465, 600, self.font, (0, 0, 0), 'destruction') # destruction portal
+            ]
+        ]
+        
+        # Sets the options for the first scene to visible
+        self.initialize_options()
+        
+    def next_prompt_state(self):
+        print('next ->')
+        
+        # Update transition state, text box, and prompt
+        self.updateTransitionState(1)
+        self.prompt = self.next_prompt
+        self.update_text_box()
          
-class Life (Scene):
+class WisdomScene (Scene):
     
     def __init__(self) -> None:
-        pass
+        
+        # Image and text variables
+        self.prompt = self.dialogue['wisdom portal']['prompt']
+        self.options = self.dialogue['wisdom portal']['options']
+        self.image = self.wisdom_trial
+        
+        # score variable to determine if the player passes the trial
+        self.rating = 0
+        
+        # Font
+        self.font_path = self.default_font
+        self.font = pygame.font.Font(self.font_path, 27)
+        
+        # Scene transition state variable
+        self.transition_state = 0
+        self.previous_state = 0
+        
+        # Dialogue box delay in seconds
+        self.drawUIDelay = 1.0
+        
+        # Clickable options
+        self.clickable_options = [
+            # first state option
+            [
+                Clickable_text("Continue.", 675, 670, self.font, (0, 0, 0), 'next')
+            ],
+            # dialogue from the demon beast
+            [
+                Clickable_text("Begin trial of wisdom.", 630, 670, self.font, (0, 0, 0), 'next')
+            ],
+            # Answers to the first trial question, the integer for the scene variable of clickable text represents the degree of "correctness"
+            # based on the age old draconic beast's beliefs
+            [
+                Clickable_text(self.dialogue['wisdom portal']['answers'][0], 460, 560, self.font, (0, 0, 0), 3),
+                Clickable_text(self.dialogue['wisdom portal']['answers'][1], 460, 600, self.font, (0, 0, 0), 4),
+                Clickable_text(self.dialogue['wisdom portal']['answers'][2], 460, 640, self.font, (0, 0, 0), 5)
+            ],
+            # Answers to the second trial question
+            [
+                Clickable_text(self.dialogue['wisdom portal']['answers'][3], 465, 560, self.font, (0, 0, 0), 2),
+                Clickable_text(self.dialogue['wisdom portal']['answers'][4], 465, 600, self.font, (0, 0, 0), 4),
+                Clickable_text(self.dialogue['wisdom portal']['answers'][5], 465, 640, self.font, (0, 0, 0), 5)
+            ],
+            # Answers to the third trial question
+            [
+                Clickable_text(self.dialogue['wisdom portal']['answers'][6], 465, 560, self.font, (0, 0, 0), 4),
+                Clickable_text(self.dialogue['wisdom portal']['answers'][7], 465, 600, self.font, (0, 0, 0), 2),
+                Clickable_text(self.dialogue['wisdom portal']['answers'][8], 465, 640, self.font, (0, 0, 0), 1)
+            ],
+            # option to advance to the next trial
+            [
+                Clickable_text("Advance to the next trial" , 630, 670, self.font, (0, 0, 0), 'trial2')
+            ]
+        ]
+        
+        # set first scene option to visible
+        self.initialize_options()
+
+    def next_text(self):
+        print("next question")
+        
+        # Update transition state, text box, and prompt
+        self.updateTransitionState(1)
+            
+        if self.transition_state == 1:
+            self.prompt = self.dialogue['wisdom portal']['beast'][0]
+        elif self.transition_state == 5:
+            if self.rating >= 10:
+                self.prompt = self.dialogue['wisdom portal']['beast'][1]
+        else:
+            self.prompt = self.dialogue['wisdom portal']['questions'][self.transition_state - 2]
+            
+        self.update_text_box()
+        
     
-class Death (Scene):
+        
+    
+        
+    
+class DestructionScene (Scene):
     
     def __init__(self) -> None:
         pass
