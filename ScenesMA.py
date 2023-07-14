@@ -1,6 +1,7 @@
 import pygame
 from characterMA import Character
 from utilitiesMA import Clickable_text
+from combatMA import Combat
 
 # Current to do list:
 # create destruction trial
@@ -172,7 +173,9 @@ class Scene:
                             "you delve into the words of a once powerful Qi cultivator, gaining profound insights on the nature of" +
                             " destruction and its role in the cultivation journey. The scroll's teachings resonate deep within, " +
                             "enlightening your understanding and igniting a flicker of newfound potential in the path of harnessing" +
-                            " destructive energies."
+                            " destructive energies.",
+                            
+                            ""
                             
                             ],
                 'options':[['Attempt to acquire the floating rune.', 'Examine the rune.', 'Explore the surroundings.'],
@@ -393,10 +396,14 @@ class SceneManager:
             'trial1': Trial1,
             'coward': CowardScene,
             'wisdom': WisdomScene,
-            'destruction':DestructionScene
+            'destruction':DestructionScene,
+            'combat':CombatScene
         }
         self.previous_scenes = list()
         self.current_scene = None
+        
+        # Player
+        self.player = Character()
         
     def transition_to_scene(self, sceneID):
         
@@ -408,9 +415,10 @@ class SceneManager:
             for scene in self.previous_scenes:
                 if isinstance(scene, scene_class):
                     
-                    # If the scene being transitioned to is the start scene, reset the previous scenes list
+                    # If the scene being transitioned to is the start scene, reset the previous scenes list and reset character
                     if isinstance(scene, StartScene):
                         self.previous_scenes.clear()
+                        self.player.reset_character()
                         
                     self.current_scene = scene
                     return
@@ -419,6 +427,7 @@ class SceneManager:
             scene = scene_class()
             self.previous_scenes.append(scene)
             self.current_scene = scene
+            
         else:
             print(f"Scene with ID {sceneID} does not exist")
         
@@ -430,6 +439,9 @@ class SceneManager:
         # If the current scene requests a transition to another scene
         if nextSceneID:
             self.transition_to_scene(nextSceneID)
+            
+    def get_character(self):
+        return self.player
 
 class StartScene (Scene):
     def __init__(self) -> None:
@@ -869,6 +881,10 @@ class DestructionScene (Scene):
         elif self.transition_state == 1:
             self.prompt = self.dialogue['destruction portal']['prompt'][2]
             self.updateTransitionState(1)
+        
+        elif self.transition_state == 2:
+            self.prompt = self.dialogue['destruction portal']['prompt'][5]
+            self.updateTransitionState(2)
             
         elif self.transition_state == 3:
             self.prompt = self.dialogue['destruction portal']['prompt'][0]
@@ -885,8 +901,8 @@ class DestructionScene (Scene):
             self.update_image(self.cave_skeleton)
             
         elif self.transition_state == 3:
-            self.updateTransitionState(2)
-            self.prompt = self.dialogue['destruction portal']['prompt'][self.transition_state]
+            self.updateTransitionState(1)
+            self.prompt = self.dialogue['destruction portal']['prompt'][self.transition_state + 1]
             self.update_text_box()
             return
             
@@ -924,7 +940,10 @@ class DestructionScene (Scene):
             
             # Update chance value and update options
             self.update_chance(20)
-            
+    
+    def process_events(self, events):
+        super().process_events(events)
+                
     def delete_clicked_option(self, option_index, y):
         
         del self.clickable_options[self.transition_state][option_index]  
@@ -971,4 +990,58 @@ class DestructionScene (Scene):
         if self.transition_state == 1:
             text_surface = self.font.render(prompt, True, (0, 0, 0))
             self.surface.blit(text_surface, (x, y))
+ 
+class CombatScene (Scene):
+    
+    def __init__(self, opponent) -> None:
+        
+        self.image = self.cave_skeleton
+        self.font = self.default_font
+        self.transition_state = 0
+        self.combat = None 
+        self.opponent = opponent
+        
+        self.clickable_options = [
+            Clickable_text("Attack", 500, 600, self.font, (0, 0, 0), "Attack"),
+            Clickable_text("Attack", 500, 630, self.font, (0, 0, 0), "Defend"),
+            Clickable_text("Attack", 500, 660, self.font, (0, 0, 0), "Flee")
+        ]
+    
+    def start_combat(self):
+        
+        player = SceneManager.get_character()
+        monster = self.opponent
+        self.combat = Combat(player, monster)
+        self.combat.initiate_combat()
+        
+        
+    def process_events(self, events):
+        
+        # Current mouse position
+        mouse_pos = pygame.mouse.get_pos()
+        
+        # Creates color change hover effect
+        for option in self.combat_options:
+            option.hovering(mouse_pos)
             
+        # Checks for mouse input
+        for event in events:
+            
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                  
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                
+                for option in self.combat_options:
+                    
+                    if event.button == 1 and option.was_clicked(mouse_pos):
+                        print("Combat option clicked")
+                        
+                        if option.scene == "Attack":
+                            self.combat.set_player_action("Attack")
+                            
+                        elif option.scene == "Defend":
+                            self.combat.set_player_action("Defend")
+                            
+                        else:
+                            self.combat.set_player_action("Flee")
