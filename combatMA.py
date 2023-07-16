@@ -32,9 +32,12 @@ class Combat:
             print("Player defended")
         
         return dmg_taken
-        
+     
     def initiate_combat(self):
         
+        """
+        returns: 0 for player death, 1 for player victory, 2 for player fleeing
+        """  
         if self.player.isAlive() and self.opponent.isAlive() and self.player_action != 'Flee':
             
             self.determine_opponent_action()
@@ -43,20 +46,27 @@ class Combat:
             player_dmg = self.calc_dmg(self.player, self.opponent)   
             self.opponent.updateHP(player_dmg)
             print(f"The player does {player_dmg} damage to the monster.")
-          
+
+            # If monster dies after player's turn
+            if not self.opponent.isAlive():
+                return 1
+
             # Opponent's turn   
             opponent_dmg = self.calc_dmg(self.opponent, self.player)
             self.player.updateHP(opponent_dmg)
             print(f"Opponent does {opponent_dmg} damage to player.")
             
         else:  
-            
             # If player decides to flee
-            return 0
+            if self.player_action == 'Flee':
+                return 2
+            else:
+                return 0
+            
     
     def determine_opponent_action(self):
-        
-        random_val = random.randint(0, 10)
+        pass
+        #random_val = random.randint(0, 10)
         
     def set_player_action(self, action):
         self.player_action = action

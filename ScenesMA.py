@@ -242,6 +242,12 @@ class Scene:
                                     else:
                                         self.next_prompt_state()
                                 
+                                elif option.scene == 'combat':
+                                    combat_scene = self.start_combat()
+                                    print("Starting Combat")
+                                    print(f"Combat scene: {combat_scene}")
+                                    return combat_scene
+                                
                                 elif option.scene in range(1, 6):
                                     self.rating += option.scene
                                     self.next_text()
@@ -396,21 +402,24 @@ class SceneManager:
             'trial1': Trial1,
             'coward': CowardScene,
             'wisdom': WisdomScene,
-            'destruction':DestructionScene,
-            'combat':CombatScene
+            'destruction':DestructionScene
         }
         self.previous_scenes = list()
         self.current_scene = None
         
         # Player
         self.player = Character()
-        
+    
     def transition_to_scene(self, sceneID):
+        
+        print("Transition_to_scene function start.")
         
         # Grab scene class based on sceneID
         scene_class = self.scenes.get(sceneID)
         
         if scene_class:
+            print(f"Transitioning to {scene_class}")
+            
             # Check if the scene class already exists in previous scenes list
             for scene in self.previous_scenes:
                 if isinstance(scene, scene_class):
@@ -423,21 +432,26 @@ class SceneManager:
                     self.current_scene = scene
                     return
                     
-            # If it doesn't exist, instantiate the new scene class
+            # If it doesn't exist, instantiate the new scene class    
             scene = scene_class()
             self.previous_scenes.append(scene)
             self.current_scene = scene
-            
+ 
         else:
             print(f"Scene with ID {sceneID} does not exist")
-        
+            
     def process_current_scene(self, events):
         
         # Process game events for the current scene, and handle scene transition requests
         nextSceneID = self.current_scene.process_events(events)
         
+        if isinstance(nextSceneID, CombatScene):
+            print('updating combat scene')
+            self.current_scene = nextSceneID
+            
         # If the current scene requests a transition to another scene
         if nextSceneID:
+            print(f"next scene id: {nextSceneID}")
             self.transition_to_scene(nextSceneID)
             
     def get_character(self):
@@ -866,6 +880,9 @@ class DestructionScene (Scene):
                 Clickable_text("Search the skeleton.", 460, 570, self.font, (0, 0, 0), 'examine'),
                 Clickable_text("Go back and take the other path.", 460, 610, self.font, (0, 0, 0), 'explore'),
                 Clickable_text(self.dialogue['destruction portal']['options'][1][2], 460, 650, self.font, (0, 0, 0), 'next')
+            ],
+            [
+                Clickable_text("Begin fight.", 670, 670, self.font, (0, 0, 0), 'combat')
             ]
         ]
         
@@ -883,7 +900,7 @@ class DestructionScene (Scene):
             self.updateTransitionState(1)
         
         elif self.transition_state == 2:
-            self.prompt = self.dialogue['destruction portal']['prompt'][5]
+            self.prompt = self.dialogue['destruction portal']['prompt'][2]
             self.updateTransitionState(2)
             
         elif self.transition_state == 3:
@@ -911,6 +928,17 @@ class DestructionScene (Scene):
         self.previous_prompt = self.prompt
         self.prompt = self.dialogue['destruction portal']['prompt'][self.transition_state]
         self.update_text_box()
+        
+    def start_combat(self):
+        
+        # Create monster
+        opponent = Character()
+
+        # Transition to combat scene
+        combat_scene = CombatScene(opponent)
+        #combat_scene.set_previous_scene('destruction')
+        print("combat scene created")
+        return combat_scene  # Return the combat scene instance
         
     def examine(self):
         
@@ -993,28 +1021,45 @@ class DestructionScene (Scene):
  
 class CombatScene (Scene):
     
-    def __init__(self, opponent) -> None:
+    def __init__(self, opponent):
         
+        # Scene image and prompt 
+        self.prompt = "hi"
         self.image = self.cave_skeleton
-        self.font = self.default_font
-        self.transition_state = 0
+        self.drawUIDelay = 0.0
+        
+        # Font
+        self.font_path = self.default_font
+        self.font = pygame.font.Font(self.font_path, 27)
+        
+        # Combat Variables
         self.combat = None 
+        self.combat_outcome = None
+        self.player = None
         self.opponent = opponent
+        self.combat_active = False
+        
+        # State and scene holders
+        self.transition_state = 0
+        self.previous_state = 0
+        self.previous_scene = None
         
         self.clickable_options = [
-            Clickable_text("Attack", 500, 600, self.font, (0, 0, 0), "Attack"),
-            Clickable_text("Attack", 500, 630, self.font, (0, 0, 0), "Defend"),
-            Clickable_text("Attack", 500, 660, self.font, (0, 0, 0), "Flee")
+            [
+                Clickable_text("Attack", 500, 600, self.font, (0, 0, 0), "Attack"),
+                Clickable_text("Defend", 500, 630, self.font, (0, 0, 0), "Defend"),
+                Clickable_text("Flee", 500, 660, self.font, (0, 0, 0), "Flee")
+            ]
         ]
+        
+        self.initialize_options()
     
     def start_combat(self):
         
-        player = SceneManager.get_character()
-        monster = self.opponent
-        self.combat = Combat(player, monster)
-        self.combat.initiate_combat()
-        
-        
+        self.combat_active = True
+        self.player = SceneManager.get_character()
+        self.combat = Combat(self.player, self.opponent)
+         
     def process_events(self, events):
         
         # Current mouse position
@@ -1045,3 +1090,35 @@ class CombatScene (Scene):
                             
                         else:
                             self.combat.set_player_action("Flee")
+                           
+        if self.combat is None:
+            self.start_combat()
+        elif self.combat_active:
+            self.combat_outcome = self.combat.initiate_combat()
+            
+        if self.combat_outcome is not None:
+            self.combat_active == False
+            
+            if self.combat_outcome == 0:
+                self.handle_player_victory()
+            elif self.combat_outcome == 1:
+                self.handle_player_death()
+            else:
+                self.handle_player_fled()
+            
+
+def set_previous_scene(self, sceneID):
+    self.previous_scene = sceneID
+    
+def return_to_previous_scene(self):
+    SceneManager.transition_to_scene(self.previous_scene)
+        
+def handle_player_victory(self):
+    print("Player Won.")
+
+def handle_player_death(self):
+    print("Player Died")   
+
+def handle_player_fled(self):
+    print("Player Fled")
+        
