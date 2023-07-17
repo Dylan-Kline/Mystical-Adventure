@@ -1113,8 +1113,32 @@ class CombatScene (Scene):
                 self.handle_player_death()
             else:
                 self.handle_player_fled()
-            
 
+def drawUI(self, surface):
+    
+    scaled_combatBox = self.resize_image()
+    
+    # Render text box ui and options for user
+    surface.blit(scaled_combatBox, (0, 150))
+    
+    # Draw clickable text options
+    for option in self.clickable_options[self.transition_state]:
+        option.draw(surface)
+    
+    self.create_text_box(surface, self.prompt, self.font)   
+    
+    self.surface = surface
+
+def resize_image(self):
+    
+    width, height = self.dialogueBox.get_size()
+    scaling_factor = 6
+    new_width = width // scaling_factor
+    new_height = height // scaling_factor
+    scaled_image = pygame.transform.smoothscale(self.dialogueBox, (new_width, new_height))  
+    
+    return scaled_image
+                    
 def set_previous_scene(self, sceneID):
     self.previous_scene = sceneID
     
