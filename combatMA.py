@@ -1,6 +1,7 @@
 # @ combatMA.py
 # This is the combat class for the game
 import random
+import math
 from characterMA import Character
 
 class Combat:
@@ -17,18 +18,18 @@ class Combat:
         
     def calc_dmg(self, attacker, defender):
         
-        if self.attacker == self.player and self.opponent_action != "Defend":
+        if attacker == self.player and self.opponent_action != "Defend":
             dmg_taken = attacker.attack_value
         
-        elif self.attacker == self.opponent and self.player_action != "Defend":
+        elif attacker == self.opponent and self.player_action != "Defend":
             dmg_taken = attacker.attack_value
             
-        elif self.attacker == self.player:
-            dmg_taken = attacker.attack_value * defender.defence_value
+        elif attacker == self.player:
+            dmg_taken = math.ceil(attacker.attack_value * defender.defence_value)
             print("Opponent defended")
             
         else:
-            dmg_taken = attacker.attack_value * defender.defence_value
+            dmg_taken = math.ceil(attacker.attack_value * defender.defence_value)
             print("Player defended")
         
         return dmg_taken

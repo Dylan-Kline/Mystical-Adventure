@@ -243,10 +243,7 @@ class Scene:
                                         self.next_prompt_state()
                                 
                                 elif option.scene == 'combat':
-                                    combat_scene = self.start_combat()
-                                    print("Starting Combat")
-                                    print(f"Combat scene: {combat_scene}")
-                                    return combat_scene
+                                    return self.start_combat()
                                 
                                 elif option.scene in range(1, 6):
                                     self.rating += option.scene
@@ -402,7 +399,8 @@ class SceneManager:
             'trial1': Trial1,
             'coward': CowardScene,
             'wisdom': WisdomScene,
-            'destruction':DestructionScene
+            'destruction':DestructionScene,
+            'combat':CombatScene
         }
         self.previous_scenes = list()
         self.current_scene = None
@@ -445,12 +443,14 @@ class SceneManager:
         # Process game events for the current scene, and handle scene transition requests
         nextSceneID = self.current_scene.process_events(events)
         
-        if isinstance(nextSceneID, CombatScene):
-            print('updating combat scene')
-            self.current_scene = nextSceneID
+        if nextSceneID is not None:
+            print(f"new scene id: {nextSceneID}")
             
         # If the current scene requests a transition to another scene
-        if nextSceneID:
+        if isinstance(nextSceneID, CombatScene):
+            self.current_scene = nextSceneID
+            
+        elif nextSceneID:
             print(f"next scene id: {nextSceneID}")
             self.transition_to_scene(nextSceneID)
             
@@ -843,6 +843,8 @@ class DestructionScene (Scene):
         self.image = self.destruction_trial
         
         self.chance = 30 # Player's chance value to obtain the rune
+        self.combat_one = 0 # Flag for whether the first combat scene was fought
+        self.combat_two = 0 # Flag for whether the second combat scene was fought
         
         # Font
         self.font_path = self.default_font
@@ -931,14 +933,16 @@ class DestructionScene (Scene):
         
     def start_combat(self):
         
-        # Create monster
-        opponent = Character()
-
-        # Transition to combat scene
+        if self.combat_one == 0:
+            opponent = Character()
+        
+        elif self.combat_two == 0:
+            opponent = Character()
+        
+        # Create Combat scene object with opponent to fight
         combat_scene = CombatScene(opponent)
         #combat_scene.set_previous_scene('destruction')
-        print("combat scene created")
-        return combat_scene  # Return the combat scene instance
+        return combat_scene
         
     def examine(self):
         
@@ -970,7 +974,7 @@ class DestructionScene (Scene):
             self.update_chance(20)
     
     def process_events(self, events):
-        super().process_events(events)
+        return super().process_events(events)
                 
     def delete_clicked_option(self, option_index, y):
         
@@ -1057,7 +1061,8 @@ class CombatScene (Scene):
     def start_combat(self):
         
         self.combat_active = True
-        self.player = SceneManager.get_character()
+        scene_manager_obj = SceneManager()
+        self.player = scene_manager_obj.get_character()
         self.combat = Combat(self.player, self.opponent)
          
     def process_events(self, events):
@@ -1066,7 +1071,7 @@ class CombatScene (Scene):
         mouse_pos = pygame.mouse.get_pos()
         
         # Creates color change hover effect
-        for option in self.combat_options:
+        for option in self.clickable_options[self.transition_state]:
             option.hovering(mouse_pos)
             
         # Checks for mouse input
@@ -1077,24 +1082,27 @@ class CombatScene (Scene):
                   
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 
-                for option in self.combat_options:
+                for option in self.clickable_options[self.transition_state]:
                     
                     if event.button == 1 and option.was_clicked(mouse_pos):
                         print("Combat option clicked")
                         
                         if option.scene == "Attack":
                             self.combat.set_player_action("Attack")
+                            self.combat_outcome = self.combat.initiate_combat()
                             
                         elif option.scene == "Defend":
                             self.combat.set_player_action("Defend")
+                            self.combat_outcome = self.combat.initiate_combat()
                             
                         else:
                             self.combat.set_player_action("Flee")
+                            self.combat_outcome = self.combat.initiate_combat()
                            
         if self.combat is None:
             self.start_combat()
         elif self.combat_active:
-            self.combat_outcome = self.combat.initiate_combat()
+            pass
             
         if self.combat_outcome is not None:
             self.combat_active == False
