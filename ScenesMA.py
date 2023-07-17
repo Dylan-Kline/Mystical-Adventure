@@ -1032,6 +1032,10 @@ class CombatScene (Scene):
         self.image = self.cave_skeleton
         self.drawUIDelay = 0.0
         
+        # Combat UI elements
+        self.combat_tag = self.resize_image(pygame.image.load('images/combat-ui-name.png'), 1.3, 1.3)
+        self.combat_options_menu = self.resize_image(pygame.image.load('images/combat-options-scroll.png'), 2, 3)
+        
         # Font
         self.font_path = self.default_font
         self.font = pygame.font.Font(self.font_path, 27)
@@ -1114,43 +1118,39 @@ class CombatScene (Scene):
             else:
                 self.handle_player_fled()
 
-def drawUI(self, surface):
-    
-    scaled_combatBox = self.resize_image()
-    
-    # Render text box ui and options for user
-    surface.blit(scaled_combatBox, (0, 150))
-    
-    # Draw clickable text options
-    for option in self.clickable_options[self.transition_state]:
-        option.draw(surface)
-    
-    self.create_text_box(surface, self.prompt, self.font)   
-    
-    self.surface = surface
+    def drawUI(self, surface):
 
-def resize_image(self):
-    
-    width, height = self.dialogueBox.get_size()
-    scaling_factor = 6
-    new_width = width // scaling_factor
-    new_height = height // scaling_factor
-    scaled_image = pygame.transform.smoothscale(self.dialogueBox, (new_width, new_height))  
-    
-    return scaled_image
-                    
-def set_previous_scene(self, sceneID):
-    self.previous_scene = sceneID
-    
-def return_to_previous_scene(self):
-    SceneManager.transition_to_scene(self.previous_scene)
+        # Render text box ui and options for user
+        surface.blit(self.combat_tag, (0, 150))
+        surface.blit(self.combat_options_menu, (1000, 500))
         
-def handle_player_victory(self):
-    print("Player Won.")
+        # Draw clickable text options
+        for option in self.clickable_options[self.transition_state]:
+            option.draw(surface)
+    
+        self.surface = surface
 
-def handle_player_death(self):
-    print("Player Died")   
+    def resize_image(self, image, width_scaling_factor, height_scaling_factor):
+        
+        width, height = image.get_size()
+        new_width = round(width / width_scaling_factor)
+        new_height = round(height / height_scaling_factor)
+        scaled_image = pygame.transform.smoothscale(image, (new_width, new_height))  
+        
+        return scaled_image
+                        
+    def set_previous_scene(self, sceneID):
+        self.previous_scene = sceneID
+        
+    def return_to_previous_scene(self):
+        SceneManager.transition_to_scene(self.previous_scene)
+            
+    def handle_player_victory(self):
+        print("Player Won.")
 
-def handle_player_fled(self):
-    print("Player Fled")
+    def handle_player_death(self):
+        print("Player Died")   
+
+    def handle_player_fled(self):
+        print("Player Fled")
         
