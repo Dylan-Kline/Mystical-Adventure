@@ -1126,7 +1126,8 @@ class CombatScene (Scene):
         # Hp bar dimensions
         bar_x = 400
         bar_y = 640
-        bar_width = 670
+        default_width = 670
+        bar_width = self.update_hp_bar(default_width)  
         bar_height = 50
         
         # Monster hp bar dimensions
@@ -1136,7 +1137,7 @@ class CombatScene (Scene):
         monster_bar_height = 40
         
         # Renders player combat UI such as name tag, health bar, and combat options scroll
-        pygame.draw.rect(surface, (0, 0, 0), (bar_x, bar_y, bar_width, bar_height))
+        pygame.draw.rect(surface, (0, 0, 0), (bar_x, bar_y, default_width, bar_height))
         pygame.draw.rect(surface, (175, 53, 78), (bar_x + 10, bar_y + 5, bar_width - 15, bar_height - 10))
         surface.blit(self.combat_tag, (90, 272))
         surface.blit(self.combat_options_menu, (900, 500))
@@ -1168,7 +1169,16 @@ class CombatScene (Scene):
         scaled_image = pygame.transform.smoothscale(image, (new_width, new_height))  
         
         return scaled_image
-                        
+     
+    def update_hp_bar(self, width):
+        
+        if self.player is not None:
+            bar_width = (self.player.getHP() / self.player.get_max_hp()) * width
+        else:
+            bar_width = width
+            
+        return bar_width
+                           
     def set_previous_scene(self, sceneID):
         self.previous_scene = sceneID
         

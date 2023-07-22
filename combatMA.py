@@ -16,23 +16,32 @@ class Combat:
         self.opponent = monster
         self.opponent_action = None
         
-    def calc_dmg(self, attacker, defender):
+    def calc_dmg(self, attacker):
         
-        if attacker == self.player and self.opponent_action != "Defend":
-            dmg_taken = attacker.attack_value
+        actions = {
+            "Attack":1.0,
+            "Defend":0.3
+        }
         
-        elif attacker == self.opponent and self.player_action != "Defend":
-            dmg_taken = attacker.attack_value
+        if attacker == self.player:
             
-        elif attacker == self.player:
-            dmg_taken = math.ceil(attacker.attack_value * defender.defence_value)
-            print("Opponent defended")
+            if self.player_action == "Defend":
+                return 0
             
+            attacker_action = self.player_action
+            defender_action = self.opponent_action
         else:
-            dmg_taken = math.ceil(attacker.attack_value * defender.defence_value)
-            print("Player defended")
-        
-        return dmg_taken
+            
+            if self.opponent_action == "Defend":
+                return 0
+            
+            attacker_action = self.opponent_action
+            defender_action = self.player_action
+            
+        dmg_multiplier = actions[attacker_action] * actions[defender_action]
+        dmg_dealt = attacker.attack_value * dmg_multiplier
+          
+        return dmg_dealt
      
     def initiate_combat(self):
         
@@ -44,7 +53,7 @@ class Combat:
             self.determine_opponent_action()
             
             # Player's turn
-            player_dmg = self.calc_dmg(self.player, self.opponent)   
+            player_dmg = self.calc_dmg(self.player)   
             self.opponent.updateHP(player_dmg)
             print(f"The player does {player_dmg} damage to the monster.")
 
@@ -53,7 +62,7 @@ class Combat:
                 return 1
 
             # Opponent's turn   
-            opponent_dmg = self.calc_dmg(self.opponent, self.player)
+            opponent_dmg = self.calc_dmg(self.opponent)
             self.player.updateHP(opponent_dmg)
             print(f"Opponent does {opponent_dmg} damage to player.")
             
@@ -66,8 +75,15 @@ class Combat:
             
     
     def determine_opponent_action(self):
-        pass
-        #random_val = random.randint(0, 10)
+        
+        decision_value = random.randint(0, 10)
+        
+        if decision_value in range(0, 10, 2):
+            self.opponent_action = "Defend"
+        else:
+            self.opponent_action = "Attack"
+            
+        print(self.opponent_action)
         
     def set_player_action(self, action):
         self.player_action = action
