@@ -1036,6 +1036,7 @@ class CombatScene (Scene):
         # Combat UI elements
         self.combat_tag = self.resize_image(pygame.image.load('images/combat-ui-name.png'), 1.3, 1.3)
         self.combat_options_menu = self.resize_image(pygame.image.load('images/combat-options-scroll.png'), 2, 3)
+        self.monster_tag = self.resize_image(self.startButton, 1.5, 1.5)
         
         # Font
         self.font_path = self.Haseyo_font
@@ -1130,9 +1131,9 @@ class CombatScene (Scene):
         
         # Monster hp bar dimensions
         monster_bar_x = 550
-        monster_bar_y = 50
+        monster_bar_y = 45
         monster_bar_width = 500
-        monster_bar_height = 50
+        monster_bar_height = 40
         
         # Renders player combat UI such as name tag, health bar, and combat options scroll
         pygame.draw.rect(surface, (0, 0, 0), (bar_x, bar_y, bar_width, bar_height))
@@ -1140,9 +1141,18 @@ class CombatScene (Scene):
         surface.blit(self.combat_tag, (90, 272))
         surface.blit(self.combat_options_menu, (900, 500))
         
+        # Render player name
+        name = self.font.render("Player", True, (0, 0, 0), None)
+        surface.blit(name, (450, 650))
+        
         # Renders monster combat UI such as monster name and health bar
         pygame.draw.rect(surface, (0, 0, 0), (monster_bar_x , monster_bar_y, monster_bar_width, monster_bar_height))
-        surface.blit(self.combat_tag, (200, 50))
+        pygame.draw.rect(surface, (175, 53, 78), (monster_bar_x + 4, monster_bar_y + 4, monster_bar_width - 10, monster_bar_height - 8))
+        surface.blit(self.monster_tag, (650, 0))
+        
+        # Render monster name
+        monster_name = self.font.render("Monster", True, (0, 0 ,0), None)
+        surface.blit(monster_name, (725, 20))
         
         # Draw clickable text options
         for option in self.clickable_options[self.transition_state]:
