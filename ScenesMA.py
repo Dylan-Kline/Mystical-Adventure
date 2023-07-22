@@ -935,12 +935,13 @@ class DestructionScene (Scene):
         
         if self.combat_one == 0:
             opponent = Character()
+            monster_image = pygame.image.load('images/demon-wolf')
         
         elif self.combat_two == 0:
             opponent = Character()
         
         # Create Combat scene object with opponent to fight
-        combat_scene = CombatScene(opponent)
+        combat_scene = CombatScene(opponent, monster_image)
         #combat_scene.set_previous_scene('destruction')
         return combat_scene
         
@@ -1025,11 +1026,11 @@ class DestructionScene (Scene):
  
 class CombatScene (Scene):
     
-    def __init__(self, opponent):
+    def __init__(self, opponent, monster_image):
         
         # Scene image and prompt 
         self.prompt = "hi"
-        self.image = self.cave_skeleton
+        self.image = monster_image
         self.drawUIDelay = 0.0
         
         # Combat UI elements
@@ -1037,8 +1038,8 @@ class CombatScene (Scene):
         self.combat_options_menu = self.resize_image(pygame.image.load('images/combat-options-scroll.png'), 2, 3)
         
         # Font
-        self.font_path = self.default_font
-        self.font = pygame.font.Font(self.font_path, 27)
+        self.font_path = self.Haseyo_font
+        self.font = pygame.font.Font(self.font_path, 30)
         
         # Combat Variables
         self.combat = None 
@@ -1052,11 +1053,12 @@ class CombatScene (Scene):
         self.previous_state = 0
         self.previous_scene = None
         
+        options_x = 1110
         self.clickable_options = [
             [
-                Clickable_text("Attack", 500, 600, self.font, (0, 0, 0), "Attack"),
-                Clickable_text("Defend", 500, 630, self.font, (0, 0, 0), "Defend"),
-                Clickable_text("Flee", 500, 660, self.font, (0, 0, 0), "Flee")
+                Clickable_text("Attack", options_x - 6, 600, self.font, (0, 0, 0), "Attack"),
+                Clickable_text("Defend", options_x - 12, 640, self.font, (0, 0, 0), "Defend"),
+                Clickable_text("Flee", options_x + 5, 680, self.font, (0, 0, 0), "Flee")
             ]
         ]
         
@@ -1120,9 +1122,27 @@ class CombatScene (Scene):
 
     def drawUI(self, surface):
 
-        # Render text box ui and options for user
-        surface.blit(self.combat_tag, (0, 150))
-        surface.blit(self.combat_options_menu, (1000, 500))
+        # Hp bar dimensions
+        bar_x = 400
+        bar_y = 640
+        bar_width = 670
+        bar_height = 50
+        
+        # Monster hp bar dimensions
+        monster_bar_x = 550
+        monster_bar_y = 50
+        monster_bar_width = 500
+        monster_bar_height = 50
+        
+        # Renders player combat UI such as name tag, health bar, and combat options scroll
+        pygame.draw.rect(surface, (0, 0, 0), (bar_x, bar_y, bar_width, bar_height))
+        pygame.draw.rect(surface, (175, 53, 78), (bar_x + 10, bar_y + 5, bar_width - 15, bar_height - 10))
+        surface.blit(self.combat_tag, (90, 272))
+        surface.blit(self.combat_options_menu, (900, 500))
+        
+        # Renders monster combat UI such as monster name and health bar
+        pygame.draw.rect(surface, (0, 0, 0), (monster_bar_x , monster_bar_y, monster_bar_width, monster_bar_height))
+        surface.blit(self.combat_tag, (200, 50))
         
         # Draw clickable text options
         for option in self.clickable_options[self.transition_state]:
