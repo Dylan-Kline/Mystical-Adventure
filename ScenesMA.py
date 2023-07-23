@@ -5,6 +5,8 @@ from combatMA import Combat
 
 # Current to do list:
 # create destruction trial
+# - Make monster classes for combat scenes
+# - later on fine tune the combat values to make it fair
 # create illusion trial
 # create final boss fight
 # create end scene (beautiful cliff)
@@ -1114,31 +1116,51 @@ class CombatScene (Scene):
         if self.combat_outcome is not None:
             self.combat_active == False
             
-            if self.combat_outcome == 0:
+            if self.combat_outcome == 1:
                 self.handle_player_victory()
-            elif self.combat_outcome == 1:
+            elif self.combat_outcome == 0:
                 self.handle_player_death()
             else:
                 self.handle_player_fled()
 
     def drawUI(self, surface):
 
-        # Hp bar dimensions
-        bar_x = 400
+        # player Hp bar dimensions
+        bar_x = 550
         bar_y = 640
-        default_width = 670
-        bar_width = self.update_hp_bar(default_width)  
+        default_width = 520
+        bar_width = self.update_hp_bar(self.player, default_width)  
         bar_height = 50
+        
+        # # player current HP, and x,y position
+        # if self.player is not None:
+        #     player_hp = self.player.getHP()
+        # else:
+        #     player_hp = 0
+        # player_hp_x = 790
+        # player_hp_y = 655
+        
+        # # Sets the hp text color based on current hp
+        # if player_hp_x > bar_width:
+        #     hp_text_color = (255, 255, 255)
+        # else:
+        #     hp_text_color = (0, 0, 0)
+        
+        # # Renders the current player HP for later drawing
+        # hp_text_surface = self.font.render(str(player_hp), True, hp_text_color)
         
         # Monster hp bar dimensions
         monster_bar_x = 550
         monster_bar_y = 45
-        monster_bar_width = 500
+        monster_hp_default_width = 500
+        monster_bar_width = self.update_hp_bar(self.opponent, monster_hp_default_width)
         monster_bar_height = 40
+        #monster_hp = self.opponent.getHP()
         
         # Renders player combat UI such as name tag, health bar, and combat options scroll
         pygame.draw.rect(surface, (0, 0, 0), (bar_x, bar_y, default_width, bar_height))
         pygame.draw.rect(surface, (175, 53, 78), (bar_x + 10, bar_y + 5, bar_width - 15, bar_height - 10))
+        #surface.blit(hp_text_surface, (player_hp_x, player_hp_y))
         surface.blit(self.combat_tag, (90, 272))
         surface.blit(self.combat_options_menu, (900, 500))
         
@@ -1147,7 +1169,7 @@ class CombatScene (Scene):
         surface.blit(name, (450, 650))
         
         # Renders monster combat UI such as monster name and health bar
-        pygame.draw.rect(surface, (0, 0, 0), (monster_bar_x , monster_bar_y, monster_bar_width, monster_bar_height))
+        pygame.draw.rect(surface, (0, 0, 0), (monster_bar_x , monster_bar_y, monster_hp_default_width, monster_bar_height))
         pygame.draw.rect(surface, (175, 53, 78), (monster_bar_x + 4, monster_bar_y + 4, monster_bar_width - 10, monster_bar_height - 8))
         surface.blit(self.monster_tag, (650, 0))
         
@@ -1170,10 +1192,10 @@ class CombatScene (Scene):
         
         return scaled_image
      
-    def update_hp_bar(self, width):
+    def update_hp_bar(self, entity, width):
         
         if self.player is not None:
-            bar_width = (self.player.getHP() / self.player.get_max_hp()) * width
+            bar_width = (entity.getHP() / entity.get_max_hp()) * width
         else:
             bar_width = width
             
@@ -1189,8 +1211,11 @@ class CombatScene (Scene):
         print("Player Won.")
 
     def handle_player_death(self):
-        print("Player Died")   
-
+        print("Player Died") 
+        
     def handle_player_fled(self):
         print("Player Fled")
+        
+        
+
         

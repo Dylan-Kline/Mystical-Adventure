@@ -56,7 +56,7 @@ class Character:
             print("Dmg taken: ", dmg_taken)
             self.hp -= dmg_taken
             
-            if self.hp <= 0.0:
+            if self.hp <= 0:
                 self.death()
                 
             print("Current HP: ", self.getHP())

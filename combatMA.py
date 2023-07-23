@@ -71,7 +71,6 @@ class Combat:
             else:
                 return 0
             
-    
     def determine_opponent_action(self):
         
         decision_value = random.randint(0, 10)
