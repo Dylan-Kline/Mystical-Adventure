@@ -423,17 +423,19 @@ class SceneManager:
             # Check if the scene class already exists in previous scenes list
             for scene in self.previous_scenes:
                 if isinstance(scene, scene_class):
-                    
                     # If the scene being transitioned to is the start scene, reset the previous scenes list and reset character
                     if isinstance(scene, StartScene):
                         self.previous_scenes.clear()
                         self.player.reset_character()
                         
                     self.current_scene = scene
+                    
+                    if isinstance(self.current_scene, DestructionScene):
+                        self.current_scene.end_combat()
                     return
                     
             # If it doesn't exist, instantiate the new scene class
-            if isinstance(scene_class, DestructionScene):
+            if scene_class == DestructionScene:
                 scene = scene_class(self)  
             else: 
                 scene = scene_class()
@@ -847,6 +849,8 @@ class DestructionScene (Scene):
         # Image and text variables
         self.prompt = self.dialogue['destruction portal']['prompt'][0]
         self.image = self.destruction_trial
+        self.grey_screen = pygame.image.load('images/grey-screen.png')
+        self.monster_image = pygame.image.load('images/demon-wolf')
         
         # Scene manager reference 
         self.scene_manager = scene_manager
@@ -894,6 +898,9 @@ class DestructionScene (Scene):
             ],
             [
                 Clickable_text("Begin fight.", 670, 670, self.font, (0, 0, 0), 'combat')
+            ],
+            [
+                Clickable_text("Loot demon wolf.", 460, 570, self.font, (0, 0, 0), 'examine')
             ]
         ]
         
@@ -944,13 +951,18 @@ class DestructionScene (Scene):
         
         if self.combat_one == 0:
             opponent = Character()
-            monster_image = pygame.image.load('images/demon-wolf')
+            monster_image = self.monster_image
         
         # Create Combat scene object with opponent to fight
         combat_scene = CombatScene(opponent, monster_image, self.scene_manager)
         #combat_scene.set_previous_scene('destruction')
         return combat_scene
+    
+    def end_combat(self):
         
+        self.combat_one = 1
+        self.update_image(self.monster_image)
+          
     def examine(self):
         
         if self.transition_state == 0:
@@ -979,10 +991,26 @@ class DestructionScene (Scene):
             
             # Update chance value and update options
             self.update_chance(20)
+            
+        elif self.transition_state == 5:
+            
+            self.delete_clicked_option(0, None)
+            
+            #
     
     def process_events(self, events):
+        
+        if self.combat_one != 0 and self.transition_state != 5:
+            # Update chance to obtain rune
+            self.update_chance(50)
+            
+            # Increment to victory transition state
+            states_increment = 5 - self.transition_state
+            self.updateTransitionState(states_increment)
+            
+            
         return super().process_events(events)
-                
+          
     def delete_clicked_option(self, option_index, y):
         
         del self.clickable_options[self.transition_state][option_index]  
@@ -1016,6 +1044,10 @@ class DestructionScene (Scene):
         self.image = self.destruction_trial
         
     def drawUI(self, surface):
+        
+        if self.combat_one != 0:
+            surface.blit(self.grey_screen, (0, 0))
+            
         super().drawUI(surface)
         
         if self.transition_state == 1 and self.previous_state == 0:
@@ -1213,9 +1245,8 @@ class CombatScene (Scene):
         
     def handle_player_victory(self):
         print("Player Won.")
-        
-        #
-        
+        self.scene_manager.transition_to_scene('destruction')
+            
     def handle_player_death(self):
         print("Player Died") 
         
