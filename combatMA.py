@@ -15,34 +15,23 @@ class Combat:
         # Opponent variables
         self.opponent = monster
         self.opponent_action = None
+    
+    def attack(self, attacker, target):
         
-    def calc_dmg(self, attacker):
+        hit_chance = random.random()
         
-        actions = {
-            "Attack":1.0,
-            "Defend":0.3
-        }
+        if hit_chance < attacker.miss_chance:
+            print("Attack Missed")
+            
+        damage_dealt = attacker.attack_damage  
+        return self.defend(target, damage_dealt)
         
-        if attacker == self.player:
-            
-            if self.player_action == "Defend":
-                return 0
-            
-            attacker_action = self.player_action
-            defender_action = self.opponent_action
-        else:
-            
-            if self.opponent_action == "Defend":
-                return 0
-            
-            attacker_action = self.opponent_action
-            defender_action = self.player_action
-            
-        dmg_multiplier = actions[attacker_action] * actions[defender_action]
-        dmg_dealt = attacker.attack_value * dmg_multiplier
-          
-        return dmg_dealt
-     
+    def defend(self, defender, damage_taken):
+        
+        actual_dmg = max(0, damage_taken - defender.defence)
+        defender.updateHP(actual_dmg)
+        return actual_dmg
+        
     def initiate_combat(self):
         
         """
@@ -53,22 +42,31 @@ class Combat:
             self.determine_opponent_action()
             
             # Player's turn
-            player_dmg = self.calc_dmg(self.player)   
-            self.opponent.updateHP(player_dmg)
+            if self.player_action == "Defend":
+                self.player.temp_buff_defence(3)
+                player_dmg = 0
+            else:
+                if self.opponent_action == "Defend":
+                    self.opponent.temp_buff_defence(2)
+                player_dmg = self.attack(self.player, self.opponent)
+                
             print(f"The player does {player_dmg} damage to the monster.")
+            print(f"Player defended: Current defence {self.player.defence}")
 
             # If monster dies after player's turn
             if not self.opponent.isAlive():
                 return 1
 
             # Opponent's turn   
-            opponent_dmg = self.calc_dmg(self.opponent)
-            self.player.updateHP(opponent_dmg)
-            print(f"Opponent does {opponent_dmg} damage to player.")
+            if self.opponent_action == "Attack":
+                opponent_dmg = self.attack(self.opponent, self.player)
+                print(f"Monster does {opponent_dmg} damage to player.")
             
         else:  
             # If player decides to flee
             if self.player_action == 'Flee':
+                self.player.reset_defence()
+                self.player.full_heal()
                 return 2
             else:
                 return 0

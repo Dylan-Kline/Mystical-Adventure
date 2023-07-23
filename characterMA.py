@@ -5,25 +5,26 @@
 class Character:
     
     def __init__(self) -> None:
-        self.max_hp = 10.0
-        self.hp = 10.0
+        self.max_hp = 100
+        self.hp = 100
         self.level = 1
         self.xp = 0
-        self.spirit = 10
+        self.miss_chance = .1 # 10% chance to miss attack
         self.alive = True
-        self.attack_value = 1.0
-        self.defence_value = .3
+        self.attack_damage = 25
+        self.defence = 5
+        self.base_defence = 5
         
     def reset_character(self):
-        self.max_hp = 10.0
-        self.hp = 10.0
+        self.max_hp = 100
+        self.hp = 100
         self.level = 1
         self.xp = 0
-        self.spirit = 10
+        self.miss_chance = .1
         self.alive = True
-        self.attack_value = 1.0
-        self.defence_value = .3
-         
+        self.attack_damage = 25
+        self.defence = 5
+    
     # Return if character is still alive
     def isAlive(self):
         return self.alive
@@ -70,4 +71,16 @@ class Character:
     
     def set_max_hp(self, new_max):
         self.max_hp = max(new_max, self.max_hp)
+
+    def full_heal(self):
+        self.hp = self.max_hp
+        
+    def temp_buff_defence(self, buff_value):
+        ''' Buffs player defence for the duration of the battle'''
+        self.defence += buff_value
+        
+    def reset_defence(self):
+        self.defence = self.base_defence
+        
+        
         
