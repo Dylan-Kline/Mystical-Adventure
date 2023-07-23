@@ -432,8 +432,12 @@ class SceneManager:
                     self.current_scene = scene
                     return
                     
-            # If it doesn't exist, instantiate the new scene class    
-            scene = scene_class()
+            # If it doesn't exist, instantiate the new scene class
+            if isinstance(scene_class, DestructionScene):
+                scene = scene_class(self)  
+            else: 
+                scene = scene_class()
+                
             self.previous_scenes.append(scene)
             self.current_scene = scene
  
@@ -839,14 +843,17 @@ class WisdomScene (Scene):
     
 class DestructionScene (Scene):
     
-    def __init__(self) -> None:
+    def __init__(self, scene_manager) -> None:
         # Image and text variables
         self.prompt = self.dialogue['destruction portal']['prompt'][0]
         self.image = self.destruction_trial
         
+        # Scene manager reference 
+        self.scene_manager = scene_manager
+        
+        # Combat variables
         self.chance = 30 # Player's chance value to obtain the rune
         self.combat_one = 0 # Flag for whether the first combat scene was fought
-        self.combat_two = 0 # Flag for whether the second combat scene was fought
         
         # Font
         self.font_path = self.default_font
@@ -939,11 +946,8 @@ class DestructionScene (Scene):
             opponent = Character()
             monster_image = pygame.image.load('images/demon-wolf')
         
-        elif self.combat_two == 0:
-            opponent = Character()
-        
         # Create Combat scene object with opponent to fight
-        combat_scene = CombatScene(opponent, monster_image)
+        combat_scene = CombatScene(opponent, monster_image, self.scene_manager)
         #combat_scene.set_previous_scene('destruction')
         return combat_scene
         
@@ -1028,12 +1032,15 @@ class DestructionScene (Scene):
  
 class CombatScene (Scene):
     
-    def __init__(self, opponent, monster_image):
+    def __init__(self, opponent, monster_image, scene_manager):
         
         # Scene image and prompt 
-        self.prompt = "hi"
+        self.prompt = ""
         self.image = monster_image
         self.drawUIDelay = 0.0
+        
+        # Scene manager reference
+        self.scene_manager = scene_manager
         
         # Combat UI elements
         self.combat_tag = self.resize_image(pygame.image.load('images/combat-ui-name.png'), 1.3, 1.3)
@@ -1204,12 +1211,11 @@ class CombatScene (Scene):
     def set_previous_scene(self, sceneID):
         self.previous_scene = sceneID
         
-    def return_to_previous_scene(self):
-        SceneManager.transition_to_scene(self.previous_scene)
-            
     def handle_player_victory(self):
         print("Player Won.")
-
+        
+        #
+        
     def handle_player_death(self):
         print("Player Died") 
         
