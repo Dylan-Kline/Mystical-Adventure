@@ -9,6 +9,9 @@ from combatMA import Combat
 # - later on fine tune the combat values to make it fair
 # create illusion trial
 # create final boss fight
+# - use a chatgpt api to create some fight scene dialogue that is unique and situational
+#   such as when chatgpt reaches a certain hp or when it defends it says something etc.
+# - have chatgpt decide its own moves based on what variables it is given
 # create end scene (beautiful cliff)
 # you could put a black screen with a 8 bit bite animation like in some games for the end of trial 
 
