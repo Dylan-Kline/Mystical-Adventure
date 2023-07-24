@@ -177,7 +177,7 @@ class Scene:
                             "enlightening your understanding and igniting a flicker of newfound potential in the path of harnessing" +
                             " destructive energies.",
                             
-                            ""
+                            "Combat."
                             
                             ],
                 'options':[['Attempt to acquire the floating rune.', 'Examine the rune.', 'Explore the surroundings.'],
@@ -897,10 +897,11 @@ class DestructionScene (Scene):
                 Clickable_text(self.dialogue['destruction portal']['options'][1][2], 460, 650, self.font, (0, 0, 0), 'next')
             ],
             [
-                Clickable_text("Begin fight.", 670, 670, self.font, (0, 0, 0), 'combat')
+                Clickable_text("Begin Battle.", 670, 670, self.font, (0, 0, 0), 'combat')
             ],
             [
-                Clickable_text("Loot demon wolf.", 460, 570, self.font, (0, 0, 0), 'examine')
+                Clickable_text("Loot Draconic Wolf.", 460, 570, self.font, (0, 0, 0), 'examine'),
+                Clickable_text("Explore the other path.", 460, 610, self.font, (0, 0, 0), 'explore')
             ]
         ]
         
@@ -909,6 +910,7 @@ class DestructionScene (Scene):
     
     def next_prompt_state(self):
         
+        # Attempt to acquire rune state
         if self.transition_state == 0:
             self.prompt = self.dialogue['destruction portal']['prompt'][1]
             self.updateTransitionState(1)
@@ -918,8 +920,9 @@ class DestructionScene (Scene):
             self.updateTransitionState(1)
         
         elif self.transition_state == 2:
-            self.prompt = self.dialogue['destruction portal']['prompt'][2]
-            self.updateTransitionState(2)
+            if self.combat_one == 0:
+                self.prompt = self.dialogue['destruction portal']['prompt'][2]
+                self.updateTransitionState(2)
             
         elif self.transition_state == 3:
             self.prompt = self.dialogue['destruction portal']['prompt'][0]
@@ -936,10 +939,23 @@ class DestructionScene (Scene):
             self.update_image(self.cave_skeleton)
             
         elif self.transition_state == 3:
-            self.updateTransitionState(1)
-            self.prompt = self.dialogue['destruction portal']['prompt'][self.transition_state + 1]
-            self.update_text_box()
+            
+            if self.combat_one == 0:
+                
+                # Delete option that leads to combat scene
+                self.delete_clicked_option(1, 610)
+                
+                # Update transition state to before combat
+                self.updateTransitionState(1)
+                self.update_image(self.monster_image)
+                self.previous_prompt = self.dialogue['destruction portal']['prompt'][0]
+                self.prompt = self.dialogue['destruction portal']['prompt'][self.transition_state + 1]
+                self.update_text_box()
             return
+        
+        elif self.transition_state == 5:
+            transition_increment = -2
+            self.image = self.cave_skeleton
             
         # Update scene state and prompt
         self.updateTransitionState(transition_increment)
@@ -961,6 +977,17 @@ class DestructionScene (Scene):
     def end_combat(self):
         
         self.combat_one = 1
+        
+        # Update chance to obtain rune
+        self.update_chance(40)
+        
+        # Update prompt
+        self.previous_prompt = self.prompt
+        self.prompt = "hi"
+        
+        # Increment to victory transition state
+        states_increment = 5 - self.transition_state
+        self.updateTransitionState(states_increment)
         self.update_image(self.monster_image)
           
     def examine(self):
@@ -998,20 +1025,12 @@ class DestructionScene (Scene):
             
             #
     
-    def process_events(self, events):
-        
-        if self.combat_one != 0 and self.transition_state != 5:
-            # Update chance to obtain rune
-            self.update_chance(50)
-            
-            # Increment to victory transition state
-            states_increment = 5 - self.transition_state
-            self.updateTransitionState(states_increment)
-            
-            
+    def process_events(self, events): 
         return super().process_events(events)
           
     def delete_clicked_option(self, option_index, y):
+        
+        ''' Deletes the clickable option for the given index inside of the current transition state options'''
         
         del self.clickable_options[self.transition_state][option_index]  
         
@@ -1045,7 +1064,7 @@ class DestructionScene (Scene):
         
     def drawUI(self, surface):
         
-        if self.combat_one != 0:
+        if self.combat_one != 0 and self.transition_state == 5:
             surface.blit(self.grey_screen, (0, 0))
             
         super().drawUI(surface)
