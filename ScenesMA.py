@@ -1,4 +1,5 @@
 import pygame
+import random
 from characterMA import Character
 from utilitiesMA import Clickable_text
 from combatMA import Combat
@@ -405,7 +406,8 @@ class SceneManager:
             'coward': CowardScene,
             'wisdom': WisdomScene,
             'destruction':DestructionScene,
-            'combat':CombatScene
+            'combat':CombatScene,
+            'death':DeathScene
         }
         self.previous_scenes = list()
         self.current_scene = None
@@ -430,11 +432,14 @@ class SceneManager:
                     if isinstance(scene, StartScene):
                         self.previous_scenes.clear()
                         self.player.reset_character()
+
+                    if isinstance(self.current_scene, CombatScene):
+                        combat_flag = self.current_scene.combat_outcome
                         
                     self.current_scene = scene
                     
                     if isinstance(self.current_scene, DestructionScene):
-                        self.current_scene.end_combat()
+                        self.current_scene.end_combat(combat_flag)
                     return
                     
             # If it doesn't exist, instantiate the new scene class
@@ -448,7 +453,12 @@ class SceneManager:
  
         else:
             print(f"Scene with ID {sceneID} does not exist")
-            
+     
+    def transition_to_death(self, prompt):
+        
+        scene = DeathScene(prompt)
+        self.current_scene = scene
+               
     def process_current_scene(self, events):
         
         # Process game events for the current scene, and handle scene transition requests
@@ -859,8 +869,9 @@ class DestructionScene (Scene):
         self.scene_manager = scene_manager
         
         # Combat variables
-        self.chance = 30 # Player's chance value to obtain the rune
+        self.chance = 1 # Player's chance value to obtain the rune
         self.combat_one = 0 # Flag for whether the first combat scene was fought
+        self.combat_outcome = None
         
         # Font
         self.font_path = self.default_font
@@ -905,6 +916,9 @@ class DestructionScene (Scene):
             [
                 Clickable_text("Loot Draconic Wolf.", 460, 570, self.font, (0, 0, 0), 'examine'),
                 Clickable_text("Explore the other path.", 460, 610, self.font, (0, 0, 0), 'explore')
+            ],
+            [
+                Clickable_text("Continue", 675, 670, self.font, (0, 0, 0), None)
             ]
         ]
         
@@ -915,15 +929,25 @@ class DestructionScene (Scene):
         
         # Attempt to acquire rune state
         if self.transition_state == 0:
-            self.prompt = self.dialogue['destruction portal']['prompt'][1]
-            self.updateTransitionState(1)
             
+            random_chance = random.randint(0, 100)
+            
+            # if random_chance is less than chance value then the player obtains the rune
+            if random_chance <= self.chance:
+                self.prompt = "Gained rune."
+                self.updateTransitionState(6)
+                
+                # the floating surroundings begin to show a fragmented reality as you get closer to the rune
+            else:
+                prompt = "Luck favors the brave...atleast most of the time."
+                self.scene_manager.transition_to_death(prompt)
+                
         elif self.transition_state == 1:
             self.prompt = self.dialogue['destruction portal']['prompt'][2]
             self.updateTransitionState(1)
         
         elif self.transition_state == 2:
-            if self.combat_one == 0:
+            if self.combat_one == 0 and self.combat_outcome is None:
                 self.prompt = self.dialogue['destruction portal']['prompt'][2]
                 self.updateTransitionState(2)
             
@@ -943,7 +967,7 @@ class DestructionScene (Scene):
             
         elif self.transition_state == 3:
             
-            if self.combat_one == 0:
+            if self.combat_one == 0 and self.combat_outcome == None:
                 
                 # Delete option that leads to combat scene
                 self.delete_clicked_option(1, 610)
@@ -974,24 +998,33 @@ class DestructionScene (Scene):
         
         # Create Combat scene object with opponent to fight
         combat_scene = CombatScene(opponent, monster_image, self.scene_manager)
-        #combat_scene.set_previous_scene('destruction')
+        combat_scene.set_previous_scene('destruction')
         return combat_scene
     
-    def end_combat(self):
+    def end_combat(self, combat_outcome):
         
-        self.combat_one = 1
+        self.combat_outcome = combat_outcome
         
-        # Update chance to obtain rune
-        self.update_chance(40)
-        
-        # Update prompt
-        self.previous_prompt = self.prompt
-        self.prompt = "hi"
-        
-        # Increment to victory transition state
-        states_increment = 5 - self.transition_state
-        self.updateTransitionState(states_increment)
-        self.update_image(self.monster_image)
+        if combat_outcome == 1:
+            self.combat_one = 1
+            
+            # Update chance to obtain rune
+            self.update_chance(40)
+            
+            # Update prompt
+            self.previous_prompt = self.prompt
+            self.prompt = "hi"
+            
+            # Increment to victory transition state
+            states_increment = 5 - self.transition_state
+            self.updateTransitionState(states_increment)
+            self.update_image(self.monster_image)
+            
+        else:
+            self.prompt = "fleeing from the battle you come back to the entrance of the path."
+            states_increment = 2 - self.transition_state
+            self.updateTransitionState(states_increment)
+            self.reset_image()
           
     def examine(self):
         
@@ -1267,13 +1300,42 @@ class CombatScene (Scene):
         
     def handle_player_victory(self):
         print("Player Won.")
-        self.scene_manager.transition_to_scene('destruction')
+        self.scene_manager.transition_to_scene(self.previous_scene)
             
     def handle_player_death(self):
         print("Player Died") 
+        self.scene_manager.transition_to_death("Died from combat.")
         
     def handle_player_fled(self):
         print("Player Fled")
+        self.scene_manager.transition_to_scene(self.previous_scene)
+        
+class DeathScene (Scene):
+    
+    def __init__(self, prompt):
+        
+        # Scene image and prompt 
+        self.prompt = prompt
+        self.image = self.cave_skeleton
+        self.drawUIDelay = 1.0
+        
+        # Font
+        self.font_path = self.default_font
+        self.font = pygame.font.Font(self.font_path, 27)
+        
+        # State and scene holders
+        self.transition_state = 0
+        self.previous_state = 0
+        self.previous_scene = None
+        
+        options_x = 1110
+        self.clickable_options = [
+            [
+                Clickable_text("Begin anew.", 675, 670, self.font, (0, 0, 0), 'start')
+            ]
+        ]
+        
+        self.initialize_options()
         
         
 
