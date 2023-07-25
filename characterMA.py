@@ -1,21 +1,34 @@
 # @ characterMA.py
 # This is the character class for the game
 ############################## Work in progress ####################################
+from inventoryMA import Inventory
 
 class Character:
     
     def __init__(self) -> None:
+        
+        # Character HP
         self.max_hp = 100
         self.hp = 100
+        
+        # Character Inventory
+        self.inventory = Inventory(25)
+        
+        # Character level and xp
         self.level = 1
         self.xp = 0
+        
         self.miss_chance = .1 # 10% chance to miss attack
+        self.attack_damage = 25  # Attack Damage
+        self.defence = 5 # Defence is how much damage the character can block from one attack
+        self.base_defence = 5 # Base defence value
+        
+        # Live status for character
         self.alive = True
-        self.attack_damage = 25
-        self.defence = 5
-        self.base_defence = 5
         
     def reset_character(self):
+        del self.inventory
+        self.inventory = Inventory(25)
         self.max_hp = 100
         self.hp = 100
         self.level = 1
@@ -71,6 +84,13 @@ class Character:
     
     def set_max_hp(self, new_max):
         self.max_hp = max(new_max, self.max_hp)
+        
+    def increase_damage(self, attack_increase):
+        self.attack_damage += attack_increase
+        print("New damage: ", self.attack_damage)
+        
+    def get_attack_damage(self):
+        return self.attack_damage
 
     def full_heal(self):
         self.hp = self.max_hp

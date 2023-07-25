@@ -432,8 +432,8 @@ class SceneManager:
                     if isinstance(scene, StartScene):
                         self.previous_scenes.clear()
                         self.player.reset_character()
-
-                    if isinstance(self.current_scene, CombatScene):
+                        
+                    elif isinstance(self.current_scene, CombatScene):
                         combat_flag = self.current_scene.combat_outcome
                         
                     self.current_scene = scene
@@ -869,7 +869,7 @@ class DestructionScene (Scene):
         self.scene_manager = scene_manager
         
         # Combat variables
-        self.chance = 1 # Player's chance value to obtain the rune
+        self.chance = 100 # Player's chance value to obtain the rune
         self.combat_one = 0 # Flag for whether the first combat scene was fought
         self.combat_outcome = None
         
@@ -934,8 +934,14 @@ class DestructionScene (Scene):
             
             # if random_chance is less than chance value then the player obtains the rune
             if random_chance <= self.chance:
+                
                 self.prompt = "Gained rune."
                 self.updateTransitionState(6)
+                
+                # Increase the player's damage by 20% 
+                current_attack_dmg = self.scene_manager.player.get_attack_damage()
+                runes_attack_damage = int(current_attack_dmg * .2)
+                self.scene_manager.player.increase_damage(runes_attack_damage)
                 
                 # the floating surroundings begin to show a fragmented reality as you get closer to the rune
             else:
@@ -1059,7 +1065,7 @@ class DestructionScene (Scene):
             
             self.delete_clicked_option(0, None)
             
-            #
+            # Player gets
     
     def process_events(self, events): 
         return super().process_events(events)
@@ -1110,15 +1116,18 @@ class DestructionScene (Scene):
             
         elif self.transition_state == 1 and self.previous_state == 3:
             self.draw_prompt("Gained: +20% to chance to obtain the law rune.", 520, 645)
+            
+        elif self.transition_state == 6:
+            self.draw_prompt("Gained: +20% to Attack Damage.", 520, 645)
         
-    def draw_prompt(self, prompt, x, y):
+    def draw_prompt(self, prompt:str|bytes|None, x:int, y:int):
         
-        if self.transition_state == 1:
-            text_surface = self.font.render(prompt, True, (0, 0, 0))
-            self.surface.blit(text_surface, (x, y))
+        text_surface = self.font.render(prompt, True, (0, 0, 0))
+        self.surface.blit(text_surface, (x, y))
  
 class CombatScene (Scene):
     
+    # Add a defence UI bar to show the player their current defence
     def __init__(self, opponent, monster_image, scene_manager):
         
         # Scene image and prompt 

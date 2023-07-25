@@ -3,8 +3,6 @@
 
 class Inventory:
     
-    maxStack = 99
-    
     def __init__(self, quantity):
         self.inventory = dict()
         self.INVspace = quantity
