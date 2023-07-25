@@ -20,6 +20,7 @@ class Character:
         
         self.miss_chance = .1 # 10% chance to miss attack
         self.attack_damage = 25  # Attack Damage
+        self.increased_damage = 1.0 # % damage increase to current attack_damage (currently 100%)
         self.defence = 5 # Defence is how much damage the character can block from one attack
         self.base_defence = 5 # Base defence value
         
@@ -36,6 +37,7 @@ class Character:
         self.miss_chance = .1
         self.alive = True
         self.attack_damage = 25
+        self.increased_damage = 1
         self.defence = 5
     
     # Return if character is still alive
@@ -84,9 +86,19 @@ class Character:
     
     def set_max_hp(self, new_max):
         self.max_hp = max(new_max, self.max_hp)
-        
-    def increase_damage(self, attack_increase):
-        self.attack_damage += attack_increase
+     
+    def increase_percent_damage(self, percent_increase):
+        self.increased_damage += percent_increase
+        self.increase_flat_damage(None)
+           
+    def increase_flat_damage(self, attack_increase):
+        ''' Updates the flat damage value for the character, attack_increase=None for percent increase update.'''
+        if attack_increase is None:
+            attack_increase = 0
+            
+        else:
+            self.attack_damage = int((self.attack_damage + attack_increase) * self.increased_damage)
+            
         print("New damage: ", self.attack_damage)
         
     def get_attack_damage(self):

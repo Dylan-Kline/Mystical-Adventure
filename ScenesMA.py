@@ -181,7 +181,9 @@ class Scene:
                             "enlightening your understanding and igniting a flicker of newfound potential in the path of harnessing" +
                             " destructive energies.",
                             
-                            "Combat."
+                            "Combat.",
+                            
+                            "As you approach the corpse it begins to slowly fade away, leaving a pair of daggers in its place."
                             
                             ],
                 'options':[['Attempt to acquire the floating rune.', 'Examine the rune.', 'Explore the surroundings.'],
@@ -872,6 +874,7 @@ class DestructionScene (Scene):
         self.chance = 100 # Player's chance value to obtain the rune
         self.combat_one = 0 # Flag for whether the first combat scene was fought
         self.combat_outcome = None
+        self.corpse_looted = False
         
         # Font
         self.font_path = self.default_font
@@ -914,8 +917,9 @@ class DestructionScene (Scene):
                 Clickable_text("Begin Battle.", 670, 670, self.font, (0, 0, 0), 'combat')
             ],
             [
-                Clickable_text("Loot Draconic Wolf.", 460, 570, self.font, (0, 0, 0), 'examine'),
-                Clickable_text("Explore the other path.", 460, 610, self.font, (0, 0, 0), 'explore')
+                Clickable_text("Loot the Draconic Wolf.", 460, 570, self.font, (0, 0, 0), 'examine'),
+                Clickable_text("Explore the cave.", 460, 610, self.font, (0, 0, 0), 'explore'),
+                Clickable_text("Return to the runic site.", 460, 650, self.font, (0, 0, 0), 'previous scene')
             ],
             [
                 Clickable_text("Continue", 675, 670, self.font, (0, 0, 0), None)
@@ -938,10 +942,8 @@ class DestructionScene (Scene):
                 self.prompt = "Gained rune."
                 self.updateTransitionState(6)
                 
-                # Increase the player's damage by 20% 
-                current_attack_dmg = self.scene_manager.player.get_attack_damage()
-                runes_attack_damage = int(current_attack_dmg * .2)
-                self.scene_manager.player.increase_damage(runes_attack_damage)
+                # Player gains +20% increased damage overall
+                self.scene_manager.player.increase_percent_damage(.2)
                 
                 # the floating surroundings begin to show a fragmented reality as you get closer to the rune
             else:
@@ -1065,7 +1067,15 @@ class DestructionScene (Scene):
             
             self.delete_clicked_option(0, None)
             
-            # Player gets
+            # increase player base damage by 3
+            self.scene_manager.player.increase_flat_damage(3)
+            self.prompt = "As you approach the wolf's corpse it begins to fade away, much like an illusion. "
+            self.corpse_looted = True
+            
+            
+            # make prompt blank, draw a prompt message at top saying Loot from draconic wolf: then put a picture of fang daggers
+            # underneath tell the player they gained the Draconis Fangs which gives them a base damage increase of 3
+            
     
     def process_events(self, events): 
         return super().process_events(events)
@@ -1116,6 +1126,9 @@ class DestructionScene (Scene):
             
         elif self.transition_state == 1 and self.previous_state == 3:
             self.draw_prompt("Gained: +20% to chance to obtain the law rune.", 520, 645)
+            
+        elif self.transition_state == 5 and self.corpse_looted:
+            self.draw_prompt("", 460, 410)
             
         elif self.transition_state == 6:
             self.draw_prompt("Gained: +20% to Attack Damage.", 520, 645)

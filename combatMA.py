@@ -22,8 +22,9 @@ class Combat:
         
         if hit_chance < attacker.miss_chance:
             print("Attack Missed")
-            
+         
         damage_dealt = attacker.attack_damage  
+            
         return self.defend(target, damage_dealt)
         
     def defend(self, defender, damage_taken):
