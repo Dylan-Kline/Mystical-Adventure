@@ -190,7 +190,13 @@ class Scene:
                             
                             '"In fleeing from battle, one may find temporary respite, but the shadows of their fear shall linger."' +
                             " You now find yourself back at the entrance of the two paths, though the path deeper into the forest seems " +
-                            "to have become overgrown with foliage after your swift exit."
+                            "to have become overgrown with foliage after your swift exit.",
+                            
+                            "Approaching the rune of destruction suspended in the air above, a surge of powerful energy courses through your body," +
+                            " compelling you to shroud yourself in spiritual energy as a shield against its pure, destructive force." +
+                            " As you reach out to grasp onto the rune, the world around you slowly warps, becoming a desolate expanse " +
+                            "of grey mist and fragmented stones. Within this surreal realm, your mind sinks into the profundities of destruction," +
+                            " enchancing your destructive power."
                             
                             ],
                 'options':[['Attempt to acquire the floating rune.', 'Examine the rune.', 'Explore the surroundings.'],
@@ -883,9 +889,16 @@ class DestructionScene (Scene):
         self.grey_screen = pygame.image.load('images/grey-screen.png')
         self.monster_image = pygame.image.load('images/demon-wolf')
         self.daggers_image = self.resize_image(pygame.image.load('images/fang-daggers.png'), 4.5, 4.5)
+        self.rune_image = pygame.image.load('images/rune-shard.png').convert_alpha()
+        
+        # Set initial alpha value (0 = fully transparent, 255 = fully visible)
+        self.alpha = 0
         
         # Scene manager reference 
         self.scene_manager = scene_manager
+        
+        # Rune collection flag
+        self.rune_obtained = False
         
         # Combat variables
         self.chance = 100 # Player's chance value to obtain the rune
@@ -958,7 +971,9 @@ class DestructionScene (Scene):
             # if random_chance is less than chance value then the player obtains the rune
             if random_chance <= self.chance:
                 
-                self.prompt = "Gained rune."
+                # Set prompt for obtaining the rune, set flag to indicate rune was obtained, and update transition state to end of trial
+                self.prompt = self.dialogue['destruction portal']['prompt'][8]
+                self.rune_obtained = True
                 self.updateTransitionState(6)
                 
                 # Player gains +20% increased damage overall
@@ -1145,6 +1160,9 @@ class DestructionScene (Scene):
         
         if self.image_delay > 0:
             self.image_delay -= delta_time
+            
+        if self.promptDelay > 0:
+            self.promptDelay -= delta_time
         
     def reset_image(self):
         self.image = self.destruction_trial
@@ -1172,9 +1190,9 @@ class DestructionScene (Scene):
             self.draw_prompt("Draconis' Fangs", 748, 175, (255, 255, 255))
             self.draw_prompt("+3 to Attack Damage", 728, 205, (255, 255, 255))
             
-            
-        elif self.transition_state == 6:
-            self.draw_prompt("Gained: +20% Increased Attack Damage", 520, 645, None)
+        # Draw reward prompt for successfully obtained the rune when rune-shard image is almost visible    
+        elif self.transition_state == 6 and self.alpha >= 240:
+            self.draw_prompt("Gained: +20% Increased Attack Damage", 555, 645, None)
         
     def drawScene(self, surface):
         
@@ -1184,7 +1202,22 @@ class DestructionScene (Scene):
             self.update_image(self.monster_image)
             surface.blit(self.image, (0, 0))
             self.surface = surface
-             
+        
+        elif self.rune_obtained:
+            
+            # Set the alpha value of the rune shard image
+            self.rune_image.set_alpha(self.alpha)
+            
+            # Render background image (destruction trial image) and foreground image that slowly fades in (rune-shard)
+            surface.fill((0, 0, 0))
+            surface.blit(self.image, (0, 0))
+            surface.blit(self.rune_image, (0, 0))
+            
+            # Increase alpha to fade in foreground image
+            self.alpha += 1
+            if self.alpha > 255:
+                self.alpha = 255
+                  
         else:
             super().drawScene(surface)
         
