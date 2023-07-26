@@ -181,9 +181,16 @@ class Scene:
                             "enlightening your understanding and igniting a flicker of newfound potential in the path of harnessing" +
                             " destructive energies.",
                             
-                            "Combat.",
+                            "Undeterred by the potential lurking monsters, you bravely venture deeper into the forest, determined to face " +
+                            "whatever challenges lie ahead. As you travel, a chilling glare holding killing intent emanates from the " +
+                            "trees ahead, signaling imminent danger. Without delay, a massive dragon-like wolf springs forward, " +
+                            "forcing you to assume a defensive stance. It seems like a fight to the death is the only way out...",
                             
-                            "As you approach the corpse it begins to slowly fade away, leaving a pair of daggers in its place."
+                            "As you approach the corpse it begins to slowly fade away, leaving a pair of daggers in its place.",
+                            
+                            '"In fleeing from battle, one may find temporary respite, but the shadows of their fear shall linger."' +
+                            " You now find yourself back at the entrance of the two paths, though the path deeper into the forest seems " +
+                            "to have become overgrown with foliage after your swift exit."
                             
                             ],
                 'options':[['Attempt to acquire the floating rune.', 'Examine the rune.', 'Explore the surroundings.'],
@@ -901,6 +908,7 @@ class DestructionScene (Scene):
         # Delays in seconds
         self.drawUIDelay = 1.0
         self.promptDelay = self.drawUIDelay - .5
+        self.image_delay = 0.0
         
         # Clickable options
         self.clickable_options = [
@@ -967,7 +975,8 @@ class DestructionScene (Scene):
         
         elif self.transition_state == 2:
             if self.combat_one == 0 and self.combat_outcome is None:
-                self.prompt = self.dialogue['destruction portal']['prompt'][2]
+                self.prompt = self.dialogue['destruction portal']['prompt'][5]
+                self.image_delay = 2.5
                 self.updateTransitionState(2)
             
         elif self.transition_state == 3:
@@ -1040,11 +1049,11 @@ class DestructionScene (Scene):
             self.update_image(self.monster_image)
             
         else:
-            self.prompt = "fleeing from the battle you come back to the entrance of the path."
+            self.prompt = self.dialogue['destruction portal']['prompt'][7]
             states_increment = 2 - self.transition_state
             self.updateTransitionState(states_increment)
             self.reset_image()
-          
+            
     def examine(self):
         
         if self.transition_state == 0:
@@ -1082,14 +1091,23 @@ class DestructionScene (Scene):
             self.scene_manager.player.increase_flat_damage(3)
             self.corpse_looted = True
             self.prompt = "As you approach the wolf's corpse it begins to fade away, leaving behind a pair of daggers. "
-           
+            
             # make prompt blank, draw a prompt message at top saying Loot from draconic wolf: then put a picture of fang daggers
             # underneath tell the player they gained the Draconis Fangs which gives them a base damage increase of 3
             
-    
     def process_events(self, events): 
         return super().process_events(events)
-          
+    
+    def previous_scene(self):
+        
+        if self.transition_state == 5:
+            # Set previous image and prompt for previous scene transition
+            self.previous_image = self.reset_image()
+            self.previous_prompt = self.dialogue['destruction portal']['prompt'][0]
+            self.previous_state = 0
+            
+        return super().previous_scene()  
+        
     def delete_clicked_option(self, option_index, y):
         
         ''' Deletes the clickable option for the given index inside of the current transition state options'''
@@ -1116,16 +1134,22 @@ class DestructionScene (Scene):
         self.chance += chance_increase
         print(f"New chance value: {self.chance}")
     
-    def update_prompt_delay(self):
-        self.promptDelay = self.drawUIDelay
-        
     def update_image(self, image):
         if image is not None:
             self.previous_image = self.image
             self.image = image
     
+    def updateTimer(self, delta_time):
+        super().updateTimer(delta_time)
+        
+        if self.image_delay > 0:
+            self.image_delay -= delta_time
+        
     def reset_image(self):
         self.image = self.destruction_trial
+        
+        if self.transition_state == 5:
+            return self.destruction_trial
         
     def drawUI(self, surface):
         
@@ -1143,12 +1167,25 @@ class DestructionScene (Scene):
         elif self.transition_state == 5 and self.corpse_looted:
             pygame.draw.rect(surface, (0, 0, 0), (478, 20, 500, 333))
             surface.blit(self.daggers_image, (483, 25))
-            self.draw_prompt("Draconis' Fangs", 748, 50, (255, 255, 255))
-            self.draw_prompt("+3 to Attack Damage", 728, 100, (255, 255, 255))
+            self.draw_prompt("You've obtained", 748, 145, (255, 255, 255))
+            self.draw_prompt("Draconis' Fangs", 748, 175, (255, 255, 255))
+            self.draw_prompt("+3 to Attack Damage", 728, 205, (255, 255, 255))
             
             
         elif self.transition_state == 6:
-            self.draw_prompt("Gained: +20% to Attack Damage.", 520, 645)
+            self.draw_prompt("Gained: +20% Increased Attack Damage", 520, 645, None)
+        
+    def drawScene(self, surface):
+        
+        if self.transition_state == 4 and self.image_delay <= 0.0:
+            
+            surface.fill((0, 0, 0))
+            self.update_image(self.monster_image)
+            surface.blit(self.image, (0, 0))
+            self.surface = surface
+             
+        else:
+            super().drawScene(surface)
         
     def draw_prompt(self, prompt:str|bytes|None, x:int, y:int, color):
         
