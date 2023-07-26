@@ -398,6 +398,15 @@ class Scene:
         # Return the scene ID of the previous scene
         return self.previous_scene_id
    
+    def resize_image(self, image, width_scaling_factor, height_scaling_factor):
+            
+        width, height = image.get_size()
+        new_width = round(width / width_scaling_factor)
+        new_height = round(height / height_scaling_factor)
+        scaled_image = pygame.transform.smoothscale(image, (new_width, new_height))  
+        
+        return scaled_image
+    
 class SceneManager:
     def __init__(self) -> None:
         self.scenes = {
@@ -866,6 +875,7 @@ class DestructionScene (Scene):
         self.image = self.destruction_trial
         self.grey_screen = pygame.image.load('images/grey-screen.png')
         self.monster_image = pygame.image.load('images/demon-wolf')
+        self.daggers_image = self.resize_image(pygame.image.load('images/fang-daggers.png'), 4.5, 4.5)
         
         # Scene manager reference 
         self.scene_manager = scene_manager
@@ -890,6 +900,7 @@ class DestructionScene (Scene):
         
         # Delays in seconds
         self.drawUIDelay = 1.0
+        self.promptDelay = self.drawUIDelay - .5
         
         # Clickable options
         self.clickable_options = [
@@ -1067,12 +1078,11 @@ class DestructionScene (Scene):
             
             self.delete_clicked_option(0, None)
             
-            # increase player base damage by 3
+            # increase player base damage by 3 and set corpse looted flag to true
             self.scene_manager.player.increase_flat_damage(3)
-            self.prompt = "As you approach the wolf's corpse it begins to fade away, much like an illusion. "
             self.corpse_looted = True
-            
-            
+            self.prompt = "As you approach the wolf's corpse it begins to fade away, leaving behind a pair of daggers. "
+           
             # make prompt blank, draw a prompt message at top saying Loot from draconic wolf: then put a picture of fang daggers
             # underneath tell the player they gained the Draconis Fangs which gives them a base damage increase of 3
             
@@ -1106,6 +1116,9 @@ class DestructionScene (Scene):
         self.chance += chance_increase
         print(f"New chance value: {self.chance}")
     
+    def update_prompt_delay(self):
+        self.promptDelay = self.drawUIDelay
+        
     def update_image(self, image):
         if image is not None:
             self.previous_image = self.image
@@ -1122,20 +1135,27 @@ class DestructionScene (Scene):
         super().drawUI(surface)
         
         if self.transition_state == 1 and self.previous_state == 0:
-            self.draw_prompt("Gained: +10% to chance to obtain the law rune.", 520, 610)
+            self.draw_prompt("Gained: +10% to chance to obtain the law rune.", 520, 610, None)
             
         elif self.transition_state == 1 and self.previous_state == 3:
-            self.draw_prompt("Gained: +20% to chance to obtain the law rune.", 520, 645)
+            self.draw_prompt("Gained: +20% to chance to obtain the law rune.", 520, 645, None)
             
         elif self.transition_state == 5 and self.corpse_looted:
-            self.draw_prompt("", 460, 410)
+            pygame.draw.rect(surface, (0, 0, 0), (478, 20, 500, 333))
+            surface.blit(self.daggers_image, (483, 25))
+            self.draw_prompt("Draconis' Fangs", 748, 50, (255, 255, 255))
+            self.draw_prompt("+3 to Attack Damage", 728, 100, (255, 255, 255))
+            
             
         elif self.transition_state == 6:
             self.draw_prompt("Gained: +20% to Attack Damage.", 520, 645)
         
-    def draw_prompt(self, prompt:str|bytes|None, x:int, y:int):
+    def draw_prompt(self, prompt:str|bytes|None, x:int, y:int, color):
         
-        text_surface = self.font.render(prompt, True, (0, 0, 0))
+        if color is None:
+            color = (0, 0, 0)
+            
+        text_surface = self.font.render(prompt, True, color)
         self.surface.blit(text_surface, (x, y))
  
 class CombatScene (Scene):
@@ -1299,15 +1319,6 @@ class CombatScene (Scene):
     
         self.surface = surface
 
-    def resize_image(self, image, width_scaling_factor, height_scaling_factor):
-        
-        width, height = image.get_size()
-        new_width = round(width / width_scaling_factor)
-        new_height = round(height / height_scaling_factor)
-        scaled_image = pygame.transform.smoothscale(image, (new_width, new_height))  
-        
-        return scaled_image
-     
     def update_hp_bar(self, entity, width):
         
         if self.player is not None:
