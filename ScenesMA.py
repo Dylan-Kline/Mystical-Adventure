@@ -976,6 +976,9 @@ class DestructionScene (Scene):
                 self.rune_obtained = True
                 self.updateTransitionState(6)
                 
+                # Set image delay to # seconds
+                self.image_delay = 4.0
+                
                 # Player gains +20% increased damage overall
                 self.scene_manager.player.increase_percent_damage(.2)
                 
@@ -1214,9 +1217,10 @@ class DestructionScene (Scene):
             surface.blit(self.rune_image, (0, 0))
             
             # Increase alpha to fade in foreground image
-            self.alpha += 1
-            if self.alpha > 255:
-                self.alpha = 255
+            if self.image_delay <= 0:
+                self.alpha += 1
+                if self.alpha > 255:
+                    self.alpha = 255
                   
         else:
             super().drawScene(surface)
