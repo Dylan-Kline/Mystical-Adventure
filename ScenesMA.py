@@ -1002,7 +1002,8 @@ class DestructionScene (Scene):
                 
                 # Update transition state to before combat
                 self.updateTransitionState(1)
-                self.update_image(self.monster_image)
+                self.reset_image()
+                self.image_delay = 2.0
                 self.previous_prompt = self.dialogue['destruction portal']['prompt'][0]
                 self.prompt = self.dialogue['destruction portal']['prompt'][self.transition_state + 1]
                 self.update_text_box()
@@ -1050,7 +1051,7 @@ class DestructionScene (Scene):
             
         else:
             self.prompt = self.dialogue['destruction portal']['prompt'][7]
-            states_increment = 2 - self.transition_state
+            states_increment = 0 - self.transition_state
             self.updateTransitionState(states_increment)
             self.reset_image()
             
@@ -1177,7 +1178,7 @@ class DestructionScene (Scene):
         
     def drawScene(self, surface):
         
-        if self.transition_state == 4 and self.image_delay <= 0.0:
+        if self.transition_state == 4  and self.image_delay <= 0.0:
             
             surface.fill((0, 0, 0))
             self.update_image(self.monster_image)
