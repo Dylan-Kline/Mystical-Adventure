@@ -1,5 +1,6 @@
 import pygame
 import random
+import numpy as np
 from characterMA import Character
 from utilitiesMA import Clickable_text
 from combatMA import Combat
@@ -1256,10 +1257,16 @@ class IllusionScene (Scene):
         self.image = pygame.image.load('images/illusion-woman.png')
         self.illusion_woman_image = pygame.image.load('images/illusion-woman.png')
         self.frown_image = pygame.image.load('images/illusion-woman-frown2.png')
-        self.walkway_image = pygame.image.load('images/walkway-to-room.png')
+        self.walkway_image = pygame.image.load('images/walkway-to-room.png').convert_alpha()
+        self.wraith_image = pygame.image.load('images/evil-ghost.png').convert_alpha()
         
         # Set initial alpha value (0 = fully transparent, 255 = fully visible)
         self.alpha = 0
+        
+        # Mask surface to use in burn_through_effect
+        self.mask_surface = pygame.Surface((1456, 816), pygame.SRCALPHA)
+        self.create_glitch_mask(self.mask_surface, num_glitches=25, max_size=35)
+        self.mask_indicator = False # Flag for whether to have the burn through effect on a particular image
         
         # Scene Manager reference
         self.scene_manager = scene_manager
@@ -1321,7 +1328,7 @@ class IllusionScene (Scene):
             self.prompt = self.dialogue['illusion trial']['dialogue'][1][0]
             self.updateTransitionState(-1)
             
-        elif self.previous_state == 0 and self.transition_state == 1:
+        elif self.previous_state == 0 and self.transition_state == 1 and self.image_delay <= 0.0:
             self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
             self.updateTransitionState(1)
             self.update_image(self.walkway_image)
@@ -1341,6 +1348,11 @@ class IllusionScene (Scene):
         elif self.transition_state == 1:
             self.prompt = self.dialogue['illusion trial']['dialogue'][1][1]
             self.updateTransitionState(-1)
+            
+        elif self.transition_state == 2:
+            self.prompt = "you notice glitchs in the world around you."
+            self.mask_indicator = True
+            self.image_delay = 1.0
     
     def explore(self):
         
@@ -1366,23 +1378,66 @@ class IllusionScene (Scene):
                 
     def drawScene(self, surface):
         
-        # Draw background of scene
-        super().drawScene(surface)
+        if not self.mask_indicator:
+            # Draw background of scene
+            super().drawScene(surface)
+            
+        else:
+            
+            glitch_intervals = 2
+            glitch_duration = 1.0 / glitch_intervals
+            
+            # Determine the glitch state based on current image_delay
+            glitch_state = int(self.image_delay / glitch_duration) % 2
+            
+            if glitch_state == 1:
+                self.mask_surface.fill((0, 0, 0, 0))
+            
+                self.create_glitch_mask(self.mask_surface, num_glitches=1, max_size=50)
+            
+                # Apply the burn-through effect to the static image
+                image = self.burn_through_effect(self.wraith_image, self.image, self.mask_surface)
+                
+            else:
+                image = self.image
+                
+            surface.fill((0, 0, 0))
+            # Draw the static image on the screen
+            surface.blit(image, (0, 0))
         
         # Draw image of illusionist woman
-        if self.image_delay <= 0.0:
-            woman = self.illusion_woman_image
+        if self.transition_state == 0 or self.transition_state == 1:
+            if self.image_delay <= 0.0:
+                woman = self.illusion_woman_image
+            else:
+                woman = self.frown_image
         else:
-            woman = self.frown_image
-            
+            woman = self.illusion_woman_image
+             
         surface.blit(woman, (0, 0))
      
     def update_image(self, image):
         if image is not None:
             self.previous_image = self.image
             self.image = image   
+     
+    def burn_through_effect(self, foreground_image, background_image, mask_surface):
+        # Apply the glitch mask to the foreground image using the BLEND_RGBA_MULT blending mode
+        glitched_foreground = foreground_image.copy()
+        glitched_foreground.blit(mask_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
+        # Apply the background image to the glitched foreground image with transparency
+        glitched_foreground.blit(background_image, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
+
+        return glitched_foreground
         
-    
+    def create_glitch_mask(self, surface, num_glitches, max_size):
+        for _ in range(num_glitches):
+            glitch_size = random.randint(1, max_size)
+            x = random.randint(0, surface.get_width() - glitch_size)
+            y = random.randint(0, surface.get_height() - glitch_size)
+            pygame.draw.rect(surface, (255, 255, 255), pygame.Rect(x, y, glitch_size, glitch_size))
+            
 class CombatScene (Scene):
     
     # Add a defence UI bar to show the player their current defence
