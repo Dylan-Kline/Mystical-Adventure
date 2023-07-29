@@ -5,10 +5,10 @@ from utilitiesMA import Clickable_text
 from combatMA import Combat
 
 # Current to do list:
-# create destruction trial
+# Destruction Trial to do list
 # - Make monster classes for combat scenes
 # - later on fine tune the combat values to make it fair
-# create illusion trial
+# create illusion trial (working on now)
 # create final boss fight
 # - use a chatgpt api to create some fight scene dialogue that is unique and situational
 #   such as when chatgpt reaches a certain hp or when it defends it says something etc.
@@ -1256,7 +1256,7 @@ class IllusionScene (Scene):
         self.image = pygame.image.load('images/illusion-woman.png')
         self.illusion_woman_image = pygame.image.load('images/illusion-woman.png')
         self.frown_image = pygame.image.load('images/illusion-woman-frown2.png')
-        self.room = self.cave_skeleton
+        self.walkway_image = pygame.image.load('images/walkway-to-room.png')
         
         # Set initial alpha value (0 = fully transparent, 255 = fully visible)
         self.alpha = 0
@@ -1324,7 +1324,8 @@ class IllusionScene (Scene):
         elif self.previous_state == 0 and self.transition_state == 1:
             self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
             self.updateTransitionState(1)
-            self.update_image(self.cave_skeleton)
+            self.update_image(self.walkway_image)
+            self.illusion_woman_image = pygame.image.load('images/illusion-woman-no-background.png')
             
         elif self.previous_state == 2 and self.transition_state == 1:
             self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
