@@ -203,17 +203,27 @@ class Scene:
                            ['Explore the cave.', 'Delve deeper into the forest.', 'Return to the runic site.']
                            ]
             },
-        "waiting death":
+        "illusion trial":
             {
-                'prompt':"You decide to test your willpower by choosing to meditate in the home of what seems to be the manifestation of death itself." +
-                            " Minutes turn into hours as screams of the abyss fill your ears...",
-                'options':['Enter the gate regardless of the potential danger...', 'Leave in haste and head back to the safety of the sect.']
-            },
-        "death portal":
-            {
-                'prompt':"Before you looms a dreadful gate radiating spiritual energy. Your fellow sect members were right, the trial grounds of the Abyss truly exist." +
-                            " Should you take the risk of undergoing the trial?",
-                'options':['Enter the gate regardless of the potential danger...', 'Leave in haste and head back to the safety of the sect.']
+                'dialogue':[
+                            [   
+                                "Lady expreses gratitude",
+                                "Lady explains",
+                                "The Lady's smile falters for a split second, before reassuring you that your vast talent" +
+                                " had shocked her into deeming you qualified for the abyss' reward ahead of schedule."
+                            ],
+                            [
+                                "Lady avoids the question",
+                                "Subtle changes begin to occur in your surroundings, perhaps you halucinated them.",
+                                "You proceed to follow the lady as she leads you to a treasure like room."
+                            ],
+                            [
+                                "Lady offers you a gem",
+                                "taking the gem you begin to grow weaker rapidly as it sucks away your life force. You try to let go, but the gems power is too strong.",
+                                "The lady grows visibly angry as the world around you begins to shake and warp. Eventually the world around you" +
+                                " shatters revealing a dark and sinister room with a disgusting wraith in the center. "
+                            ]
+                ]                
             }
     }
      
@@ -265,6 +275,9 @@ class Scene:
                                 
                                 elif option.scene == 'combat':
                                     return self.start_combat()
+                                
+                                elif option.scene == 'death':
+                                    self.scene_manager.transition_to_death(self.death_prompt)
                                 
                                 elif option.scene in range(1, 6):
                                     self.rating += option.scene
@@ -430,6 +443,7 @@ class SceneManager:
             'coward': CowardScene,
             'wisdom': WisdomScene,
             'destruction':DestructionScene,
+            'illusion':IllusionScene,
             'combat':CombatScene,
             'death':DeathScene
         }
@@ -467,7 +481,7 @@ class SceneManager:
                     return
                     
             # If it doesn't exist, instantiate the new scene class
-            if scene_class == DestructionScene:
+            if scene_class == DestructionScene or scene_class == IllusionScene:
                 scene = scene_class(self)  
             else: 
                 scene = scene_class()
@@ -1232,7 +1246,142 @@ class DestructionScene (Scene):
             
         text_surface = self.font.render(prompt, True, color)
         self.surface.blit(text_surface, (x, y))
- 
+
+class IllusionScene (Scene):
+    
+    def __init__(self, scene_manager) -> None:
+        # Image and text variables
+        self.prompt = self.dialogue['destruction portal']['prompt'][0]
+        self.death_prompt = "Dead."
+        self.image = pygame.image.load('images/illusion-woman.png')
+        self.illusion_woman_image = pygame.image.load('images/illusion-woman.png')
+        self.frown_image = pygame.image.load('images/illusion-woman-frown2.png')
+        self.room = self.cave_skeleton
+        
+        # Set initial alpha value (0 = fully transparent, 255 = fully visible)
+        self.alpha = 0
+        
+        # Scene Manager reference
+        self.scene_manager = scene_manager
+        
+        # Combat variables
+        self.combat_one = 0 # Flag for whether the first combat scene was fought
+        self.combat_outcome = None
+        
+        # Font
+        self.font_path = self.default_font
+        self.font = pygame.font.Font(self.font_path, 27)
+        
+        # Scene transition state variable
+        self.transition_state = 0
+       
+        # Previous state variables 
+        self.previous_image = None
+        self.previous_state = 0
+        self.previous_prompt = None
+        
+        # Delays in seconds
+        self.drawUIDelay = 1.0
+        self.promptDelay = self.drawUIDelay - .5
+        self.image_delay = 0.0
+        
+        # Clickable options
+        self.clickable_options = [
+            # first state option
+            [
+                Clickable_text("Compliment the woman.", 460, 570, self.font, (0, 0, 0), 'next'),
+                Clickable_text("Inquire about the difficulty of the trial.", 460, 610, self.font, (0, 0, 0), 'examine'),
+                Clickable_text("Express suspicion about the trials.", 460, 650, self.font, (0, 0, 0), 'explore')
+            ],
+            [
+                Clickable_text("Follow.", 675, 670, self.font, (0, 0, 0), 'next')
+            ],
+            [
+                Clickable_text("Ask about her past.", 460, 570, self.font, (0, 0, 0), 'next'),
+                Clickable_text("Proceed following her cautiously.", 460, 610, self.font, (0, 0, 0), 'examine'),
+                Clickable_text("Follow her.", 460, 650, self.font, (0, 0, 0), 'explore')
+            ],
+            [
+                Clickable_text("Take the gem.", 460, 570, self.font, (0, 0, 0), 'death'),
+                Clickable_text("Ask about its purpose.", 460, 610, self.font, (0, 0, 0), 'examine'),
+                Clickable_text("Refuse to take the gem.", 460, 650, self.font, (0, 0, 0), 'explore')
+            ]
+        ]
+        
+        # sets the first scene option to visible
+        self.initialize_options()
+        
+    def next_prompt_state(self):
+        
+        if self.transition_state == 0:
+            self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
+            self.updateTransitionState(1)
+        
+        elif self.transition_state == 2:
+            self.prompt = self.dialogue['illusion trial']['dialogue'][1][0]
+            self.updateTransitionState(-1)
+            
+        elif self.previous_state == 0 and self.transition_state == 1:
+            self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
+            self.updateTransitionState(1)
+            self.update_image(self.cave_skeleton)
+            
+        elif self.previous_state == 2 and self.transition_state == 1:
+            self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
+            self.updateTransitionState(2)
+            self.update_image(self.destruction_trial)
+            
+    def examine(self):
+        
+        if self.transition_state == 0:
+            self.prompt = self.dialogue['illusion trial']['dialogue'][0][1]
+            self.updateTransitionState(1)
+            
+        elif self.transition_state == 1:
+            self.prompt = self.dialogue['illusion trial']['dialogue'][1][1]
+            self.updateTransitionState(-1)
+    
+    def explore(self):
+        
+        if self.transition_state == 0:
+            self.prompt = self.dialogue['illusion trial']['dialogue'][0][2]
+            self.updateTransitionState(1)
+            self.image_delay = 0.5
+            self.previous_image = self.illusion_woman_image
+            
+        elif self.transition_state == 2:
+            self.prompt = self.dialogue['illusion trial']['dialogue'][1][2]
+            self.updateTransitionState(1)
+            self.update_image(self.destruction_trial)
+            
+    def updateTimer(self, delta_time):
+        super().updateTimer(delta_time)
+        
+        if self.image_delay > 0:
+            self.image_delay -= delta_time
+            
+        if self.promptDelay > 0:
+            self.promptDelay -= delta_time
+                
+    def drawScene(self, surface):
+        
+        # Draw background of scene
+        super().drawScene(surface)
+        
+        # Draw image of illusionist woman
+        if self.image_delay <= 0.0:
+            woman = self.illusion_woman_image
+        else:
+            woman = self.frown_image
+            
+        surface.blit(woman, (0, 0))
+     
+    def update_image(self, image):
+        if image is not None:
+            self.previous_image = self.image
+            self.image = image   
+        
+    
 class CombatScene (Scene):
     
     # Add a defence UI bar to show the player their current defence
@@ -1436,7 +1585,6 @@ class DeathScene (Scene):
         self.previous_state = 0
         self.previous_scene = None
         
-        options_x = 1110
         self.clickable_options = [
             [
                 Clickable_text("Begin anew.", 675, 670, self.font, (0, 0, 0), 'start')
