@@ -10,7 +10,7 @@ from combatMA import Combat
 # - Make monster classes for combat scenes
 # - later on fine tune the combat values to make it fair
 # create illusion trial (working on now)
-# create final boss fight
+# create final boss fight (the porci trial of pine)
 # - use a chatgpt api to create some fight scene dialogue that is unique and situational
 #   such as when chatgpt reaches a certain hp or when it defends it says something etc.
 # - have chatgpt decide its own moves based on what variables it is given
@@ -969,7 +969,7 @@ class DestructionScene (Scene):
                 Clickable_text("Return to the runic site.", 460, 650, self.font, (0, 0, 0), 'previous scene')
             ],
             [
-                Clickable_text("Continue", 675, 670, self.font, (0, 0, 0), None)
+                Clickable_text("Continue", 675, 670, self.font, (0, 0, 0), 'illusion')
             ]
         ]
         
@@ -1263,10 +1263,10 @@ class IllusionScene (Scene):
         # Set initial alpha value (0 = fully transparent, 255 = fully visible)
         self.alpha = 0
         
-        # Mask surface to use in burn_through_effect
+        # Create mask_surface for glitch effect
         self.mask_surface = pygame.Surface((1456, 816), pygame.SRCALPHA)
-        self.create_glitch_mask(self.mask_surface, num_glitches=25, max_size=35)
-        self.mask_indicator = False # Flag for whether to have the burn through effect on a particular image
+        self.create_glitch_mask(self.mask_surface, num_glitches=1, max_size=35)
+        self.mask_indicator = False # Flag for whether to have the glitch effect occur
         
         # Scene Manager reference
         self.scene_manager = scene_manager
@@ -1280,7 +1280,7 @@ class IllusionScene (Scene):
         self.font = pygame.font.Font(self.font_path, 27)
         
         # Scene transition state variable
-        self.transition_state = 0
+        self.transition_state = 0 # 0 for start of illusion scene, 1 for walkway scene, 2 for temple room scene, 3 for mini boss battle scene
        
         # Previous state variables 
         self.previous_image = None
@@ -1289,29 +1289,40 @@ class IllusionScene (Scene):
         
         # Delays in seconds
         self.drawUIDelay = 1.0
-        self.promptDelay = self.drawUIDelay - .5
+        self.promptDelay = 0.0
         self.image_delay = 0.0
         
         # Clickable options
         self.clickable_options = [
-            # first state option
+            # State 0
             [
                 Clickable_text("Compliment the woman.", 460, 570, self.font, (0, 0, 0), 'next'),
                 Clickable_text("Inquire about the difficulty of the trial.", 460, 610, self.font, (0, 0, 0), 'examine'),
                 Clickable_text("Express suspicion about the trials.", 460, 650, self.font, (0, 0, 0), 'explore')
             ],
+            # State 1
             [
                 Clickable_text("Follow.", 675, 670, self.font, (0, 0, 0), 'next')
             ],
+            # State 2
             [
                 Clickable_text("Ask about her past.", 460, 570, self.font, (0, 0, 0), 'next'),
                 Clickable_text("Proceed following her cautiously.", 460, 610, self.font, (0, 0, 0), 'examine'),
                 Clickable_text("Follow her.", 460, 650, self.font, (0, 0, 0), 'explore')
             ],
+            # State 3
             [
                 Clickable_text("Take the gem.", 460, 570, self.font, (0, 0, 0), 'death'),
                 Clickable_text("Ask about its purpose.", 460, 610, self.font, (0, 0, 0), 'examine'),
-                Clickable_text("Refuse to take the gem.", 460, 650, self.font, (0, 0, 0), 'explore')
+                Clickable_text("Refuse to take the gem.", 460, 650, self.font, (0, 0, 0), 'next')
+            ],
+            # State 4
+            [
+                Clickable_text("Fight for your life.", 630, 670, self.font, (0, 0, 0), 'combat')
+            ],
+            # State 5
+            [
+                Clickable_text("Continue.", 675, 670, self.font, (0, 0, 0), 'previous scene')
             ]
         ]
         
@@ -1328,6 +1339,11 @@ class IllusionScene (Scene):
             self.prompt = self.dialogue['illusion trial']['dialogue'][1][0]
             self.updateTransitionState(-1)
             
+        elif self.transition_state == 3:
+            self.prompt = "The illusion breaks and the monster appears"
+            self.updateTransitionState(1)
+            self.update_image(self.wraith_image)
+            
         elif self.previous_state == 0 and self.transition_state == 1 and self.image_delay <= 0.0:
             self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
             self.updateTransitionState(1)
@@ -1338,7 +1354,7 @@ class IllusionScene (Scene):
             self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
             self.updateTransitionState(2)
             self.update_image(self.destruction_trial)
-            
+                 
     def examine(self):
         
         if self.transition_state == 0:
@@ -1350,9 +1366,19 @@ class IllusionScene (Scene):
             self.updateTransitionState(-1)
             
         elif self.transition_state == 2:
-            self.prompt = "you notice glitchs in the world around you."
-            self.mask_indicator = True
-            self.image_delay = 1.0
+            if not self.mask_indicator:
+                self.previous_prompt = "You notice glitches occuring in the world around you."
+                self.prompt = "Lady leads you into a temple room."
+                self.updateTransitionState(1)
+                self.update_image(self.destruction_trial)
+                self.mask_indicator = True
+                self.image_delay = 1.0
+                self.promptDelay = 1.0
+                
+        elif self.transition_state == 3:
+            self.previous_prompt = self.prompt
+            self.prompt = "Lady explains about the gem and the power it can give."
+            self.updateTransitionState(2)
     
     def explore(self):
         
@@ -1366,7 +1392,17 @@ class IllusionScene (Scene):
             self.prompt = self.dialogue['illusion trial']['dialogue'][1][2]
             self.updateTransitionState(1)
             self.update_image(self.destruction_trial)
-            
+    
+    def start_combat(self):
+        
+        if self.combat_one == 0:
+            monster = Character()
+        
+        # Create wraith mini-boss combat scene and return it to the scene manager  
+        combat_scene = CombatScene(monster, self.wraith_image, self.scene_manager)
+        combat_scene.set_previous_scene('illusion')
+        return combat_scene
+                   
     def updateTimer(self, delta_time):
         super().updateTimer(delta_time)
         
@@ -1384,26 +1420,30 @@ class IllusionScene (Scene):
             
         else:
             
-            glitch_intervals = 2
-            glitch_duration = 1.0 / glitch_intervals
-            
-            # Determine the glitch state based on current image_delay
-            glitch_state = int(self.image_delay / glitch_duration) % 2
-            
-            if glitch_state == 1:
-                self.mask_surface.fill((0, 0, 0, 0))
-            
-                self.create_glitch_mask(self.mask_surface, num_glitches=1, max_size=50)
-            
-                # Apply the burn-through effect to the static image
-                image = self.burn_through_effect(self.wraith_image, self.image, self.mask_surface)
+            if self.image_delay > 0.0:
+                glitch_intervals = 2
+                glitch_duration = 1.0 / glitch_intervals
                 
+                # Determine the glitch state based on current image_delay
+                glitch_state = int(self.image_delay / glitch_duration) % 2
+                
+                if glitch_state == 1:
+                    self.mask_surface.fill((0, 0, 0, 0))
+                
+                    self.create_glitch_mask(self.mask_surface, num_glitches=1, max_size=50)
+                
+                    # Apply the burn-through effect to the static image
+                    image = self.glitch_effect(self.wraith_image, self.image, self.mask_surface)
+                    
+                else:
+                    image = self.image
+                    
+                surface.fill((0, 0, 0))
+                # Draw the static image on the screen
+                surface.blit(image, (0, 0))
+            
             else:
-                image = self.image
-                
-            surface.fill((0, 0, 0))
-            # Draw the static image on the screen
-            surface.blit(image, (0, 0))
+                self.mask_indicator = False
         
         # Draw image of illusionist woman
         if self.transition_state == 0 or self.transition_state == 1:
@@ -1413,15 +1453,31 @@ class IllusionScene (Scene):
                 woman = self.frown_image
         else:
             woman = self.illusion_woman_image
-             
-        surface.blit(woman, (0, 0))
+        
+        if self.transition_state != 4:     
+            surface.blit(woman, (0, 0))
+    
+    def drawUI(self, surface):
+        
+        if self.promptDelay > 0.0:
+           # Render text box ui and options for user
+            surface.blit(self.scaled_dialogueBox, (0, 150))
+            
+            # Draw clickable text options
+            for option in self.clickable_options[self.transition_state]:
+                option.draw(surface)
+            
+            self.create_text_box(surface, self.previous_prompt, self.font) 
+        
+        else:
+            super().drawUI(surface)
      
     def update_image(self, image):
         if image is not None:
             self.previous_image = self.image
             self.image = image   
      
-    def burn_through_effect(self, foreground_image, background_image, mask_surface):
+    def glitch_effect(self, foreground_image, background_image, mask_surface):
         # Apply the glitch mask to the foreground image using the BLEND_RGBA_MULT blending mode
         glitched_foreground = foreground_image.copy()
         glitched_foreground.blit(mask_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
@@ -1436,7 +1492,7 @@ class IllusionScene (Scene):
             glitch_size = random.randint(1, max_size)
             x = random.randint(0, surface.get_width() - glitch_size)
             y = random.randint(0, surface.get_height() - glitch_size)
-            pygame.draw.rect(surface, (255, 255, 255), pygame.Rect(x, y, glitch_size, glitch_size))
+            pygame.draw.rect(surface, (100, 100, 100), pygame.Rect(x, y, glitch_size/2, glitch_size*100))
             
 class CombatScene (Scene):
     
