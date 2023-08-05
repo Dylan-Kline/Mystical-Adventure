@@ -1,6 +1,7 @@
 import pygame
 import random
 import numpy as np
+import math
 from characterMA import Character
 from utilitiesMA import Clickable_text
 from combatMA import Combat
@@ -1568,13 +1569,6 @@ class FinalTrial (Scene):
         # Set initial alpha value (0 = fully transparent, 255 = fully visible)
         self.alpha = 0
         
-        # mask surface for corruption effect
-        self.corruption_surface = None
-        self.corrupted_image_copy = self.desturction_core.copy()
-        
-        # circle mask radius
-        self.radius = 1
-        
         # Scene Manager reference
         self.scene_manager = scene_manager
         
@@ -1625,10 +1619,13 @@ class FinalTrial (Scene):
         self.prompt = self.dialogue['final trial']['prompt'][2]
         
     def drawScene(self, surface):
+    
+        super().drawScene(surface)
+        
         # Slowly have the red spiritual core take over the image of the regular golden core
         if self.transition_state == 2:
             self.corruption_effect(surface)
-        super().drawScene(surface)
+        
         
     def start_combat(self):
         
@@ -1661,24 +1658,15 @@ class FinalTrial (Scene):
             self.previous_image = self.image
             self.image = image 
             
-    def corruption_effect(self, surface):
-       
-        # Create a surface with an alpha value for the mask
-        if self.corruption_surface is None:
-            self.corruption_surface = pygame.Surface((1456, 816), pygame.SRCALPHA)
-        self.corruption_surface.fill((255, 255, 255, 0))
+    def corruption_effect(self, surface:pygame.Surface):
         
-        # Draw a circular mask with current updated radius
-        pygame.draw.circle(self.corruption_surface, (255, 255, 255, 255), (1456 // 2, 816 // 2), self.radius)
-
-        # Blit the corrupted image onto the corruption surface
-        self.corrupted_image_copy.blit(self.corruption_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        self.desturction_core.set_alpha(self.alpha)
+        surface.blit(self.desturction_core, (0, 0))
         
-        # Blit the corruption surface onto the main surface and increase radius of mask for next frame
-        surface.blit(self.corrupted_image_copy, (0, 0))
-        self.radius += 5
-        pygame.time.delay(30)
-        
+        if self.alpha < 255:
+            self.alpha += 2
+        else:
+            self.alpha = 255
                        
 class CombatScene (Scene):
     
