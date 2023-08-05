@@ -16,6 +16,7 @@ from combatMA import Combat
 # - have chatgpt decide its own moves based on what variables it is given
 # create end scene (beautiful cliff)
 # you could put a black screen with a 8 bit bite animation like in some games for the end of trial 
+# Add background music to the game
 
 class Scene:
     
@@ -225,6 +226,28 @@ class Scene:
                                 " shatters revealing a dark and sinister room with a disgusting wraith in the center. "
                             ]
                 ]                
+            },
+        'final trial':
+            {
+                'prompt':[
+                    
+                    # Final boss encounter text
+                    "Before you is porcupine of massive proportions, guarding what seems to be a extremely precious cosmic fruit.",
+                    
+                    # Final boss battle victory text
+                    "After a fierce battle the cosmic fruit lays within your hands" +
+                    ", the pure energy emanating from it causes your cultivation bottleneck to shift." +
+                    " Biting into the fruit, you feel vast amounts of spiritual energy surging into your" +
+                    " spiritual sea. Stage after stage of the Foundation Building Realm passes by, until..." +
+                    "you feel your spiritual energy begin to rapidly condense towards the center, signaling a major breakthrough in your cultivation." +
+                    " A few moments pass inside your inner world as the condensation reaches the peak. " +
+                    "Now situated at the center of your spiritual scape is a luminous golden sphere, signaling your breakthrough to the Golden Core Realm" +
+                    "  a realm only achieved by those of the core disciple status.",
+                    
+                    # Mutated golden core text
+                    " Admiring your newly achieved golden core, you begin to notice red smoke proliferating throughout your spiritual scape, corrupting your spiritual energy" +
+                    " and core as it does. "
+                ]
             }
     }
      
@@ -445,6 +468,7 @@ class SceneManager:
             'wisdom': WisdomScene,
             'destruction':DestructionScene,
             'illusion':IllusionScene,
+            'final-trial':FinalTrial,
             'combat':CombatScene,
             'death':DeathScene
         }
@@ -482,7 +506,7 @@ class SceneManager:
                     return
                     
             # If it doesn't exist, instantiate the new scene class
-            if scene_class == DestructionScene or scene_class == IllusionScene:
+            if scene_class == DestructionScene or scene_class == IllusionScene or scene_class == FinalTrial:
                 scene = scene_class(self)  
             else: 
                 scene = scene_class()
@@ -997,6 +1021,10 @@ class DestructionScene (Scene):
                 # Player gains +20% increased damage overall
                 self.scene_manager.player.increase_percent_damage(.2)
                 
+                # Increase player level by 1
+                self.scene_manager.player.levelUp(1)
+                self.scene_manager.player.status()
+                
                 # the floating surroundings begin to show a fragmented reality as you get closer to the rune
             else:
                 prompt = "Luck favors the brave...atleast most of the time."
@@ -1330,7 +1358,7 @@ class IllusionScene (Scene):
             ],
             # State 6 - Victory state
             [
-                Clickable_text("Move on to the final trial.", 610, 670, self.font, (0, 0, 0), None)
+                Clickable_text("Move on to the final trial.", 610, 670, self.font, (0, 0, 0), 'final-trial')
             ]
         ]
         
@@ -1349,9 +1377,10 @@ class IllusionScene (Scene):
             self.updateTransitionState(3)
             
         elif self.transition_state == 3:
-            self.prompt = "The illusion breaks and the monster appears"
-            self.updateTransitionState(1)
-            self.update_image(self.wraith_image)
+            if self.promptDelay <= 0.0:
+                self.prompt = "The illusion breaks and the monster appears"
+                self.updateTransitionState(1)
+                self.update_image(self.wraith_image)
             
         elif self.previous_state == 0 and self.transition_state == 1 and self.image_delay <= 0.0:
             self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
@@ -1526,7 +1555,99 @@ class IllusionScene (Scene):
             x = random.randint(0, surface.get_width() - glitch_size)
             y = random.randint(0, surface.get_height() - glitch_size)
             pygame.draw.rect(surface, (100, 100, 100), pygame.Rect(x, y, glitch_size/2, glitch_size*100))
+
+class FinalTrial (Scene):
+    def __init__(self, scene_manager:SceneManager) -> None:
+        
+        # Image and text variables
+        self.prompt = self.dialogue['final trial']['prompt'][0]
+        self.image = pygame.image.load('images/porcupine-demon.png')
+        self.golden_core = pygame.image.load('images/golden-core.png')
+        self.desturction_core = pygame.image.load('images/destruction-core.png').convert_alpha()
+        self.death_prompt = "Dead."
+        
+        # Set initial alpha value (0 = fully transparent, 255 = fully visible)
+        self.alpha = 0
+        
+        # Scene Manager reference
+        self.scene_manager = scene_manager
+        
+        # Combat variables
+        self.combat_one = 0 # Flag for whether the first combat scene was fought
+        self.combat_outcome = None # Updated by the scene manager class after combat
+        
+        # Font
+        self.font_path = self.default_font
+        self.font = pygame.font.Font(self.font_path, 27)
+        
+        # Scene transition state variable
+        self.transition_state = 0
+       
+        # Previous state variables 
+        self.previous_image = None
+        self.previous_state = 0
+        self.previous_prompt = None
+        
+        # Delays in seconds
+        self.drawUIDelay = 1.0
+        self.promptDelay = 0.0
+        self.image_delay = 0.0
+        
+        # Clickable options
+        self.clickable_options = [
+            # state 0 - boss battle
+            [
+                Clickable_text("Fight for the millenium-old cosmic fruit.", 560, 670, self.font, (0, 0, 0), 'combat')
+            ],
+            # state 1 - victory scene
+            [
+                Clickable_text("Exit the trial grounds.", 655, 670, self.font, (0, 0, 0), 'end')
+            ]
+        ]
+        
+        # sets the first scene option to visible
+        self.initialize_options()
+    
+    def drawScene(self, surface):
+        
+        # Slowly have the red spiritual core take over the image of the regular golden core
+        if self.transition_state == 2:
+            pass
             
+        else:
+            super().drawScene(surface)
+    
+    def start_combat(self):
+        
+        if self.combat_one == 0:
+            monster = Character()
+        
+        # Create porcupine boss combat scene and return it to the scene manager  
+        combat_scene = CombatScene(monster, self.image, self.scene_manager)
+        combat_scene.set_previous_scene('final-trial')
+        return combat_scene
+    
+    def end_combat(self, combat_outcome):
+        
+        if combat_outcome == 1:
+            
+            self.combat_outcome = combat_outcome
+        
+            # Update combat flag
+            self.combat_one = 1
+        
+            # Update prompt
+            self.prompt = self.dialogue['final trial']['prompt'][0]
+            
+            # Increment to victory transition state
+            self.updateTransitionState(1)
+            self.update_image(self.golden_core)
+    
+    def update_image(self, image):
+        if image is not None:
+            self.previous_image = self.image
+            self.image = image 
+                          
 class CombatScene (Scene):
     
     # Add a defence UI bar to show the player their current defence
@@ -1721,7 +1842,7 @@ class CombatScene (Scene):
     def handle_player_fled(self):
         print("Player Fled")
         self.scene_manager.transition_to_scene(self.previous_scene)
-        
+       
 class DeathScene (Scene):
     
     def __init__(self, prompt):
