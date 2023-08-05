@@ -238,11 +238,10 @@ class Scene:
                     "After a fierce battle the cosmic fruit lays within your hands" +
                     ", the pure energy emanating from it causes your cultivation bottleneck to shift." +
                     " Biting into the fruit, you feel vast amounts of spiritual energy surging into your" +
-                    " spiritual sea. Stage after stage of the Foundation Building Realm passes by, until..." +
-                    "you feel your spiritual energy begin to rapidly condense towards the center, signaling a major breakthrough in your cultivation." +
-                    " A few moments pass inside your inner world as the condensation reaches the peak. " +
-                    "Now situated at the center of your spiritual scape is a luminous golden sphere, signaling your breakthrough to the Golden Core Realm" +
-                    "  a realm only achieved by those of the core disciple status.",
+                    " spiritual sea, pushing your cultivation through multiple stages, until finally" +
+                    "you feel your spiritual energy begin to rapidly condense towards the center, forming a spherical shape." +
+                    " A few moments pass inside your inner world as the condensation reaches the peak, " +
+                    "now situated at the center of your spiritual scape is a luminous golden sphere, signaling your breakthrough to the Golden Core Realm.",
                     
                     # Mutated golden core text
                     " Admiring your newly achieved golden core, you begin to notice red smoke proliferating throughout your spiritual scape, corrupting your spiritual energy" +
@@ -501,7 +500,7 @@ class SceneManager:
                         combat_flag = self.current_scene.combat_outcome
                         
                     self.current_scene = scene
-                    if isinstance(self.current_scene, DestructionScene) or isinstance(self.current_scene, IllusionScene):
+                    if isinstance(self.current_scene, DestructionScene) or isinstance(self.current_scene, IllusionScene) or isinstance(self.current_scene, FinalTrial):
                         self.current_scene.end_combat(combat_flag)
                     return
                     
@@ -1569,6 +1568,13 @@ class FinalTrial (Scene):
         # Set initial alpha value (0 = fully transparent, 255 = fully visible)
         self.alpha = 0
         
+        # mask surface for corruption effect
+        self.corruption_surface = None
+        self.corrupted_image_copy = self.desturction_core.copy()
+        
+        # circle mask radius
+        self.radius = 1
+        
         # Scene Manager reference
         self.scene_manager = scene_manager
         
@@ -1601,22 +1607,29 @@ class FinalTrial (Scene):
             ],
             # state 1 - victory scene
             [
-                Clickable_text("Exit the trial grounds.", 655, 670, self.font, (0, 0, 0), 'end')
+                Clickable_text("Exit the trial grounds.", 655, 670, self.font, (0, 0, 0), 'next')
+            ],
+            # state 2 - corrupted core scene
+            [
+                Clickable_text("Trek onwards.", 670, 670, self.font, (0, 0, 0), None)
             ]
         ]
         
         # sets the first scene option to visible
         self.initialize_options()
     
-    def drawScene(self, surface):
+    def next_prompt_state(self):
         
+        # Update to the corrupted core scene and setup the corruption effect
+        self.updateTransitionState(1)
+        self.prompt = self.dialogue['final trial']['prompt'][2]
+        
+    def drawScene(self, surface):
         # Slowly have the red spiritual core take over the image of the regular golden core
         if self.transition_state == 2:
-            pass
-            
-        else:
-            super().drawScene(surface)
-    
+            self.corruption_effect(surface)
+        super().drawScene(surface)
+        
     def start_combat(self):
         
         if self.combat_one == 0:
@@ -1637,7 +1650,7 @@ class FinalTrial (Scene):
             self.combat_one = 1
         
             # Update prompt
-            self.prompt = self.dialogue['final trial']['prompt'][0]
+            self.prompt = self.dialogue['final trial']['prompt'][1]
             
             # Increment to victory transition state
             self.updateTransitionState(1)
@@ -1647,7 +1660,26 @@ class FinalTrial (Scene):
         if image is not None:
             self.previous_image = self.image
             self.image = image 
-                          
+            
+    def corruption_effect(self, surface):
+       
+        # Create a surface with an alpha value for the mask
+        if self.corruption_surface is None:
+            self.corruption_surface = pygame.Surface((1456, 816), pygame.SRCALPHA)
+        self.corruption_surface.fill((255, 255, 255, 0))
+        
+        # Draw a circular mask with current updated radius
+        pygame.draw.circle(self.corruption_surface, (255, 255, 255, 255), (1456 // 2, 816 // 2), self.radius)
+
+        # Blit the corrupted image onto the corruption surface
+        self.corrupted_image_copy.blit(self.corruption_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        
+        # Blit the corruption surface onto the main surface and increase radius of mask for next frame
+        surface.blit(self.corrupted_image_copy, (0, 0))
+        self.radius += 5
+        pygame.time.delay(30)
+        
+                       
 class CombatScene (Scene):
     
     # Add a defence UI bar to show the player their current defence
