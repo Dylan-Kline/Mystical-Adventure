@@ -32,6 +32,9 @@ class Combat:
         actual_dmg = max(0, damage_taken - defender.defence)
         defender.updateHP(actual_dmg)
         return actual_dmg
+    
+    def special_combat_effects(self):
+        pass
         
     def initiate_combat(self):
         
@@ -44,7 +47,7 @@ class Combat:
             
             # Player's turn
             if self.player_action == "Defend":
-                self.player.temp_buff_defence(3)
+                self.player.temp_buff_defence(2)
                 player_dmg = 0
             else:
                 if self.opponent_action == "Defend":

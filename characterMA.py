@@ -46,18 +46,28 @@ class Character:
     
     # Exp calc
     def gainXP(self, amount):
+        
+        ''' xp required for level up is 10 times current level'''
+        
         self.xp += amount
         if self.xp >= self.level * 10:
             self.levelUp()
          
     # Show character stats
     def status(self):
-        print(f'''Name: {self.name}, Level: {self.level}, XP: {self.xp}/{self.level * 10}, HP: {self.getHP()}, 
-                  Stamina: {self.stamina}, Spirit: {self.spirit}\n''')
-     
+        print(f'''Name: {'Player'}, Level: {self.level}, XP: {self.xp}/{self.level * 10}, HP: {self.getHP()}, Attack Damage: {self.attack_damage},
+               Defence: {self.defence}\n''')
+    
     # Character Level up calc       
-    def levelUp(self):
-        self.level += 1
+    def levelUp(self, amount_of_levels):
+        
+        self.level += amount_of_levels
+        
+        # Update Player stats
+        self.max_hp += amount_of_levels * 10 # Increase player's max hp by 10 per new level
+        self.attack_damage += amount_of_levels * 2 # Increase player attack damage by 2 per new level
+        self.base_defence += amount_of_levels # Increase player's base defence by 1 point per new level
+        self.reset_defence() # Update player defence to the new value
         print("You are now level: ", self.level)
            
     # Kill character if status is false, returns isAlive status
@@ -79,6 +89,9 @@ class Character:
     # retrieve character hp
     def getHP(self):
         return self.hp
+    
+    def get_level(self):
+        return self.level
     
     # retrieve maximum character hp
     def get_max_hp(self):

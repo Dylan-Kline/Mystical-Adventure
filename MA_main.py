@@ -18,7 +18,7 @@ def main():
 
     # Scene manager
     scene_manager = SceneManager()
-    scene_manager.transition_to_scene('destruction')
+    scene_manager.transition_to_scene('illusion')
     
     # Make another outer loop while True: to allow for restarting the game if a player dies.
     running = True # Game Status (off/on)

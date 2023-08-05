@@ -471,13 +471,13 @@ class SceneManager:
                     if isinstance(scene, StartScene):
                         self.previous_scenes.clear()
                         self.player.reset_character()
-                        
+                    
+                    # Checks whether the current scene is a combat one and updates the combat outcome for the previous scene's logic   
                     elif isinstance(self.current_scene, CombatScene):
                         combat_flag = self.current_scene.combat_outcome
                         
                     self.current_scene = scene
-                    
-                    if isinstance(self.current_scene, DestructionScene):
+                    if isinstance(self.current_scene, DestructionScene) or isinstance(self.current_scene, IllusionScene):
                         self.current_scene.end_combat(combat_flag)
                     return
                     
@@ -897,7 +897,7 @@ class WisdomScene (Scene):
     
 class DestructionScene (Scene):
     
-    def __init__(self, scene_manager) -> None:
+    def __init__(self, scene_manager:SceneManager) -> None:
         # Image and text variables
         self.prompt = self.dialogue['destruction portal']['prompt'][0]
         self.image = self.destruction_trial
@@ -918,7 +918,7 @@ class DestructionScene (Scene):
         # Combat variables
         self.chance = 100 # Player's chance value to obtain the rune
         self.combat_one = 0 # Flag for whether the first combat scene was fought
-        self.combat_outcome = None
+        self.combat_outcome = None # Updated from the scene manager class
         self.corpse_looted = False
         
         # Font
@@ -1072,6 +1072,7 @@ class DestructionScene (Scene):
             
             # Update chance to obtain rune
             self.update_chance(40)
+            self.scene_manager.player.full_heal()
             
             # Update prompt
             self.previous_prompt = self.prompt
@@ -1250,7 +1251,7 @@ class DestructionScene (Scene):
 
 class IllusionScene (Scene):
     
-    def __init__(self, scene_manager) -> None:
+    def __init__(self, scene_manager:SceneManager) -> None:
         # Image and text variables
         self.prompt = self.dialogue['destruction portal']['prompt'][0]
         self.death_prompt = "Dead."
@@ -1273,7 +1274,7 @@ class IllusionScene (Scene):
         
         # Combat variables
         self.combat_one = 0 # Flag for whether the first combat scene was fought
-        self.combat_outcome = None
+        self.combat_outcome = None # Updated by the scene manager class after combat
         
         # Font
         self.font_path = self.default_font
@@ -1315,7 +1316,10 @@ class IllusionScene (Scene):
                 Clickable_text("Take the gem.", 460, 570, self.font, (0, 0, 0), 'death'),
                 Clickable_text("Ask about its purpose.", 460, 610, self.font, (0, 0, 0), 'examine'),
                 Clickable_text("Refuse to take the gem.", 460, 650, self.font, (0, 0, 0), 'next')
-            ],
+            ]
+            
+            # Implement a few flashes of the real wraith image after taking the gem, and then include a swooshing sound effect like your energy is being sucked away
+            ,
             # State 4
             [
                 Clickable_text("Fight for your life.", 630, 670, self.font, (0, 0, 0), 'combat')
@@ -1323,6 +1327,10 @@ class IllusionScene (Scene):
             # State 5
             [
                 Clickable_text("Continue.", 675, 670, self.font, (0, 0, 0), 'previous scene')
+            ],
+            # State 6 - Victory state
+            [
+                Clickable_text("Move on to the final trial.", 610, 670, self.font, (0, 0, 0), None)
             ]
         ]
         
@@ -1336,8 +1344,9 @@ class IllusionScene (Scene):
             self.updateTransitionState(1)
         
         elif self.transition_state == 2:
+            self.previous_prompt = self.prompt
             self.prompt = self.dialogue['illusion trial']['dialogue'][1][0]
-            self.updateTransitionState(-1)
+            self.updateTransitionState(3)
             
         elif self.transition_state == 3:
             self.prompt = "The illusion breaks and the monster appears"
@@ -1402,7 +1411,30 @@ class IllusionScene (Scene):
         combat_scene = CombatScene(monster, self.wraith_image, self.scene_manager)
         combat_scene.set_previous_scene('illusion')
         return combat_scene
-                   
+    
+    def end_combat(self, combat_outcome):
+
+        self.combat_outcome = combat_outcome
+        
+        if combat_outcome == 1:
+            
+            # Update combat flag
+            self.combat_one = 1
+        
+            # Update prompt
+            self.previous_prompt = self.prompt
+            self.prompt = "hi"
+            
+            # Increased player's level by 2 from victory and heal the player back to full
+            self.scene_manager.player.levelUp(2)
+            self.scene_manager.player.full_heal()
+            self.scene_manager.player.status()
+            
+            # Increment to victory transition state
+            states_increment = 6 - self.transition_state
+            self.updateTransitionState(states_increment)
+            self.update_image(self.wraith_image)
+                      
     def updateTimer(self, delta_time):
         super().updateTimer(delta_time)
         
@@ -1420,6 +1452,7 @@ class IllusionScene (Scene):
             
         else:
             
+            # Create glitch effect for state 3
             if self.image_delay > 0.0:
                 glitch_intervals = 2
                 glitch_duration = 1.0 / glitch_intervals
@@ -1454,7 +1487,7 @@ class IllusionScene (Scene):
         else:
             woman = self.illusion_woman_image
         
-        if self.transition_state != 4:     
+        if self.transition_state != 4 and self.transition_state != 6:     
             surface.blit(woman, (0, 0))
     
     def drawUI(self, surface):
@@ -1476,7 +1509,7 @@ class IllusionScene (Scene):
         if image is not None:
             self.previous_image = self.image
             self.image = image   
-     
+    
     def glitch_effect(self, foreground_image, background_image, mask_surface):
         # Apply the glitch mask to the foreground image using the BLEND_RGBA_MULT blending mode
         glitched_foreground = foreground_image.copy()
@@ -1528,12 +1561,16 @@ class CombatScene (Scene):
         self.previous_state = 0
         self.previous_scene = None
         
-        options_x = 1110
+        options_x = 1028
         self.clickable_options = [
             [
                 Clickable_text("Attack", options_x - 6, 600, self.font, (0, 0, 0), "Attack"),
                 Clickable_text("Defend", options_x - 12, 640, self.font, (0, 0, 0), "Defend"),
                 Clickable_text("Flee", options_x + 5, 680, self.font, (0, 0, 0), "Flee")
+            ],
+            [
+                Clickable_text("Attack", options_x - 6, 615, self.font, (0, 0, 0), "Attack"),
+                Clickable_text("Defend", options_x - 12, 660, self.font, (0, 0, 0), "Defend")
             ]
         ]
         
@@ -1541,11 +1578,16 @@ class CombatScene (Scene):
     
     def start_combat(self):
         
+        # Change combat options to those without the flee option since the mini boss and final boss battles are unfleeable
+        print(self.previous_scene)
+        if self.previous_scene != 'destruction':
+            self.updateTransitionState(1)
+            
         self.combat_active = True
         scene_manager_obj = SceneManager()
         self.player = scene_manager_obj.get_character()
         self.combat = Combat(self.player, self.opponent)
-         
+        
     def process_events(self, events):
         
         # Current mouse position
@@ -1598,7 +1640,7 @@ class CombatScene (Scene):
     def drawUI(self, surface):
 
         # player Hp bar dimensions
-        bar_x = 550
+        bar_x = 468
         bar_y = 640
         default_width = 520
         bar_width = self.update_hp_bar(self.player, default_width)  
@@ -1622,7 +1664,7 @@ class CombatScene (Scene):
         # hp_text_surface = self.font.render(str(player_hp), True, hp_text_color)
         
         # Monster hp bar dimensions
-        monster_bar_x = 550
+        monster_bar_x = 468
         monster_bar_y = 45
         monster_hp_default_width = 500
         monster_bar_width = self.update_hp_bar(self.opponent, monster_hp_default_width)
@@ -1634,7 +1676,7 @@ class CombatScene (Scene):
         pygame.draw.rect(surface, (175, 53, 78), (bar_x + 10, bar_y + 5, bar_width - 15, bar_height - 10))
         #surface.blit(hp_text_surface, (player_hp_x, player_hp_y))
         surface.blit(self.combat_tag, (90, 272))
-        surface.blit(self.combat_options_menu, (900, 500))
+        surface.blit(self.combat_options_menu, (818, 500))
         
         # Render player name
         name = self.font.render("Player", True, (0, 0, 0), None)
@@ -1643,14 +1685,15 @@ class CombatScene (Scene):
         # Renders monster combat UI such as monster name and health bar
         pygame.draw.rect(surface, (0, 0, 0), (monster_bar_x , monster_bar_y, monster_hp_default_width, monster_bar_height))
         pygame.draw.rect(surface, (175, 53, 78), (monster_bar_x + 4, monster_bar_y + 4, monster_bar_width - 10, monster_bar_height - 8))
-        surface.blit(self.monster_tag, (650, 0))
+        surface.blit(self.monster_tag, (568, 0))
         
         # Render monster name
         monster_name = self.font.render("Monster", True, (0, 0 ,0), None)
-        surface.blit(monster_name, (725, 20))
+        surface.blit(monster_name, (643, 20))
         
+        option_group = self.clickable_options[self.transition_state]
         # Draw clickable text options
-        for option in self.clickable_options[self.transition_state]:
+        for option in option_group:
             option.draw(surface)
     
         self.surface = surface
