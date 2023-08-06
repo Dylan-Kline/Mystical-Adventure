@@ -246,7 +246,15 @@ class Scene:
                     
                     # Mutated golden core text
                     " Admiring your newly achieved golden core, you begin to notice red smoke proliferating throughout your spiritual scape, corrupting your spiritual energy" +
-                    " and core as it does. "
+                    " and core as it does. It seems the abyss has given you another reward, your golden core has mutated into one of a destruction nature."
+                ]
+            },
+        'end':
+            {
+                'prompt':[
+                    "Exiting the trials, you emerge atop a divine-like mountain peak, a realm untouched by mortal gaze. Before you lies a breathtaking panorama—a vast " +
+                    "expanse of lush forests, cascading waterfalls, and towering mountains adorned with veils of clouds. In this moment of triumph, you find yourself gazing " +
+                    "upon a world of untamed beauty, a testament to your journey's completion in the Trials of the Abyss."
                 ]
             }
     }
@@ -470,7 +478,8 @@ class SceneManager:
             'illusion':IllusionScene,
             'final-trial':FinalTrial,
             'combat':CombatScene,
-            'death':DeathScene
+            'death':DeathScene,
+            'end':EndScene
         }
         self.previous_scenes = list()
         self.current_scene = None
@@ -1605,7 +1614,7 @@ class FinalTrial (Scene):
             ],
             # state 2 - corrupted core scene
             [
-                Clickable_text("Trek onwards.", 670, 670, self.font, (0, 0, 0), None)
+                Clickable_text("Trek onwards.", 670, 670, self.font, (0, 0, 0), 'end')
             ]
         ]
         
@@ -1667,7 +1676,67 @@ class FinalTrial (Scene):
             self.alpha += 2
         else:
             self.alpha = 255
-                       
+
+class EndScene(Scene):
+    def __init__(self) -> None:
+        # Image and text variables
+        self.prompt = self.dialogue['end']['prompt'][0]
+        self.image = pygame.image.load('images/end-view.png')
+        self.end_button = self.startButton
+        
+        # Set initial alpha value (0 = fully transparent, 255 = fully visible)
+        self.alpha = 0
+        
+        # Font
+        self.font_path = self.default_font
+        self.font = pygame.font.Font(self.font_path, 27)
+        self.defaultF = self.font
+        self.haseyo = pygame.font.Font(self.Haseyo_font, 35)
+        
+        # Scene transition state variable
+        self.transition_state = 0
+       
+        # Previous state variables 
+        self.previous_image = None
+        self.previous_state = 0
+        self.previous_prompt = None
+        
+        # Delays in seconds
+        self.drawUIDelay = 1.0
+        self.promptDelay = 0.0
+        self.image_delay = 0.0
+        
+        # Clickable options
+        self.clickable_options = [
+            # state 0 - end scene
+            [
+                Clickable_text("Continue.", 675, 670, self.defaultF, (0, 0, 0), 'next')
+            ],
+            [
+                Clickable_text("End Adventure.", 610, 605, self.haseyo, (0, 0, 0), 0)
+            ]
+        ]
+        
+        # sets the first scene option to visible
+        self.initialize_options()
+    
+    def next_prompt_state(self):
+        self.updateTransitionState(1)
+        
+    def drawUI(self, surface):
+        
+        if self.transition_state == 0:
+            super().drawUI(surface)
+            
+        else:
+            # Draw exit button
+            surface.blit(self.end_button, (500, 580))
+            
+            # Draw clickable text options for end scene
+            for option in self.clickable_options[self.transition_state]:
+                if option is not None:
+                    option.draw(surface)     
+                               
 class CombatScene (Scene):
     
     # Add a defence UI bar to show the player their current defence
