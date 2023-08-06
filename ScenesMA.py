@@ -206,12 +206,37 @@ class Scene:
             },
         "illusion trial":
             {
+                'prompt':[
+                    # Garden scene prompt
+                    " After obtaining profound knowledge in destruction you find yourself transported to a serene garden." +
+                    " Before you awaits a lady with a gentle smile. 'Congratulations brave soul, you have succeeded in overcoming the challenges " +
+                    "of the abyss. The abyss recognizes your valor; an award awaits you ahead.'" +
+                    " Her eyes flicker momentarily, a hint of something more lurking behind her composed facade.",
+                    
+                    # Stone walkway scene prompt
+                    "Following the mysterious woman, you find yourself on a stone walkway before a grand temple, a breathtaking landscape unfolds around you. " +
+                    "The woman's voice, soft yet compelling, sounds out, 'The beauty here reflects your triumph; " +
+                    "the temple just ahead hosts the treasure befitting your achievement.'"
+                    
+                ],
+                
                 'dialogue':[
                             [   
-                                "Lady expreses gratitude",
-                                "Lady explains",
-                                "The Lady's smile falters for a split second, before reassuring you that your vast talent" +
-                                " had shocked her into deeming you qualified for the abyss' reward ahead of schedule."
+                                # complement option response
+                                "With a graceful bow and a blush that seems to enhance her ethereal beauty, the woman responds to the compliment, " +
+                                "'Your kind words honor me, courageous one. But come, the treasure that awaits you is far more alluring. " +
+                                "Follow me to the chamber of rewards, and let the fruits of your valor be revealed.' Her voice carries a melodic charm as the wind carries it to your ears.",
+                                
+                                # Trial difficulty response
+                                "A glimmer of intrigue in her gaze as she responds to your inquiry. 'Ah, your curiosity is matched by your courage." +
+                                " The trial you have faced was indeed one of great difficulty, a challenge few have conquered. Yet here you stand, victorious." +
+                                " Come now, the treasure room awaits, and the reward within is a fitting tribute to your prowess.'",
+                                
+                                # Expressing suspicion response
+                                "The smile on the face of the woman falters for a split second, a tiny crack in the otherwise perfect façade. " +
+                                "But she quickly regains her composure, her eyes softening as she addresses your suspicion. 'Your doubt is not unwarranted, wise challenger. " +
+                                "The trials of the abyss are mysterious and ever-changing, reflecting the deepest parts of those who face them. " +
+                                "The path you've tread was unique to you. Now, let us proceed to your well-earned reward.'"
                             ],
                             [
                                 "Lady avoids the question",
@@ -1288,7 +1313,7 @@ class IllusionScene (Scene):
     
     def __init__(self, scene_manager:SceneManager) -> None:
         # Image and text variables
-        self.prompt = self.dialogue['destruction portal']['prompt'][0]
+        self.prompt = self.dialogue['illusion trial']['prompt'][0]
         self.death_prompt = "Dead."
         self.image = pygame.image.load('images/illusion-woman.png')
         self.illusion_woman_image = pygame.image.load('images/illusion-woman.png')
@@ -1332,9 +1357,9 @@ class IllusionScene (Scene):
         self.clickable_options = [
             # State 0
             [
-                Clickable_text("Compliment the woman.", 460, 570, self.font, (0, 0, 0), 'next'),
-                Clickable_text("Inquire about the difficulty of the trial.", 460, 610, self.font, (0, 0, 0), 'examine'),
-                Clickable_text("Express suspicion about the trials.", 460, 650, self.font, (0, 0, 0), 'explore')
+                Clickable_text("Compliment the woman.", 460, 590, self.font, (0, 0, 0), 'next'),
+                Clickable_text("Inquire about the difficulty of the trial.", 460, 630, self.font, (0, 0, 0), 'examine'),
+                Clickable_text("Express suspicion about the trials.", 460, 670, self.font, (0, 0, 0), 'explore')
             ],
             # State 1
             [
@@ -1377,7 +1402,7 @@ class IllusionScene (Scene):
         if self.transition_state == 0:
             self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
             self.updateTransitionState(1)
-        
+           
         elif self.transition_state == 2:
             self.previous_prompt = self.prompt
             self.prompt = self.dialogue['illusion trial']['dialogue'][1][0]
@@ -1390,7 +1415,7 @@ class IllusionScene (Scene):
                 self.update_image(self.wraith_image)
             
         elif self.previous_state == 0 and self.transition_state == 1 and self.image_delay <= 0.0:
-            self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
+            self.prompt = self.dialogue['illusion trial']['prompt'][1]
             self.updateTransitionState(1)
             self.update_image(self.walkway_image)
             self.illusion_woman_image = pygame.image.load('images/illusion-woman-no-background.png')
