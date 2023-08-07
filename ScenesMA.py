@@ -216,11 +216,15 @@ class Scene:
                     # Stone walkway scene prompt
                     "Following the mysterious woman, you find yourself on a stone walkway before a grand temple, a breathtaking landscape unfolds around you. " +
                     "The woman's voice, soft yet compelling, sounds out, 'The beauty here reflects your triumph; " +
-                    "the temple just ahead hosts the treasure befitting your achievement.'"
+                    "the temple just ahead hosts the treasure befitting your achievement.'",
+                    
+                    # Temple room prompt
+                    " Entering the temple, you find yourself inside an intricately decoration room"
                     
                 ],
                 
                 'dialogue':[
+                            # State 0 dialogue
                             [   
                                 # complement option response
                                 "With a graceful bow and a blush that seems to enhance her ethereal beauty, the woman responds to the compliment, " +
@@ -238,11 +242,19 @@ class Scene:
                                 "The trials of the abyss are mysterious and ever-changing, reflecting the deepest parts of those who face them. " +
                                 "The path you've tread was unique to you. Now, let us proceed to your well-earned reward.'"
                             ],
+                            
+                            # State 1 dialogue
                             [
-                                "Lady avoids the question",
-                                "Subtle changes begin to occur in your surroundings, perhaps you halucinated them.",
+                                "The woman's eyes momentarily cloud with a hidden emotion as she speaks, 'My past is but a shadow, dear challenger, " +
+                                "a fleeting whisper in the wind. What matters now is your remarkable " + 
+                                "achievement and the reward that awaits you. Shall we enter the temple?'",
+                                "As you follow the mysterious woman cautiously, subtle glitches begin to manifest in the surroundings." +
+                                " Sensing your caution, the woman smiles gently and says, 'Fear not the path, brave one; it is but a" +
+                                " reflection of life's imperfections.",
                                 "You proceed to follow the lady as she leads you to a treasure like room."
                             ],
+                            
+                            # State 2 dialogue
                             [
                                 "Lady offers you a gem",
                                 "taking the gem you begin to grow weaker rapidly as it sucks away your life force. You try to let go, but the gems power is too strong.",
@@ -255,10 +267,10 @@ class Scene:
             {
                 'prompt':[
                     
-                    # Final boss encounter text
+                    # Final boss encounter text - 0 
                     "Before you is porcupine of massive proportions, guarding what seems to be a extremely precious cosmic fruit.",
                     
-                    # Final boss battle victory text
+                    # Final boss battle victory text - 1
                     "After a fierce battle the cosmic fruit lays within your hands" +
                     ", the pure energy emanating from it causes your cultivation bottleneck to shift." +
                     " Biting into the fruit, you feel vast amounts of spiritual energy surging into your" +
@@ -267,7 +279,7 @@ class Scene:
                     " A few moments pass inside your inner world as the condensation reaches the peak, " +
                     "now situated at the center of your spiritual scape is a luminous golden sphere, signaling your breakthrough to the Golden Core Realm.",
                     
-                    # Mutated golden core text
+                    # Mutated golden core text - 2
                     " Admiring your newly achieved golden core, you begin to notice red smoke proliferating throughout your spiritual scape, corrupting your spiritual energy" +
                     " and core as it does. It seems the abyss has given you another reward, your golden core has mutated into one of a destruction nature."
                 ]
@@ -1380,7 +1392,7 @@ class IllusionScene (Scene):
             
             # Implement a few flashes of the real wraith image after taking the gem, and then include a swooshing sound effect like your energy is being sucked away
             ,
-            # State 4
+            # State 4 - illusion breaking scene
             [
                 Clickable_text("Fight for your life.", 630, 670, self.font, (0, 0, 0), 'combat')
             ],
@@ -1423,7 +1435,7 @@ class IllusionScene (Scene):
         elif self.previous_state == 2 and self.transition_state == 1:
             self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
             self.updateTransitionState(2)
-            self.update_image(self.destruction_trial)
+            self.update_image(pygame.image.load('images/temple-room.png'))
                  
     def examine(self):
         
@@ -1437,13 +1449,13 @@ class IllusionScene (Scene):
             
         elif self.transition_state == 2:
             if not self.mask_indicator:
-                self.previous_prompt = "You notice glitches occuring in the world around you."
+                self.previous_prompt = self.dialogue['illusion trial']['dialogue'][1][1]
                 self.prompt = "Lady leads you into a temple room."
                 self.updateTransitionState(1)
-                self.update_image(self.destruction_trial)
+                self.update_image(pygame.image.load('images/temple-room.png'))
                 self.mask_indicator = True
                 self.image_delay = 1.0
-                self.promptDelay = 1.0
+                self.promptDelay = 6.0
                 
         elif self.transition_state == 3:
             self.previous_prompt = self.prompt
@@ -1460,8 +1472,10 @@ class IllusionScene (Scene):
             
         elif self.transition_state == 2:
             self.prompt = self.dialogue['illusion trial']['dialogue'][1][2]
+            self.previous_prompt = self.dialogue['illusion trial']['dialogue'][1][2]
             self.updateTransitionState(1)
             self.update_image(self.destruction_trial)
+            self.promptDelay = 2.0
     
     def start_combat(self):
         
@@ -1548,7 +1562,12 @@ class IllusionScene (Scene):
         else:
             woman = self.illusion_woman_image
         
-        if self.transition_state != 4 and self.transition_state != 6:     
+        if self.transition_state == 3 or (self.transition_state == 5 and self.previous_state == 3):
+            # flip the woman image horizontally
+            woman = pygame.transform.flip(woman, True, False)
+            surface.blit(woman, (500, 0))
+            
+        elif self.transition_state != 4 and self.transition_state != 6:     
             surface.blit(woman, (0, 0))
     
     def drawUI(self, surface):
