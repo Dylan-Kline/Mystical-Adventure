@@ -250,13 +250,17 @@ class Scene:
                                 "achievement and the reward that awaits you. Shall we enter the temple?'",
                                 "As you follow the mysterious woman cautiously, subtle glitches begin to manifest in the surroundings." +
                                 " Sensing your caution, the woman smiles gently and says, 'Fear not the path, brave one; it is but a" +
-                                " reflection of life's imperfections.",
-                                "You proceed to follow the lady as she leads you to a treasure like room."
+                                " reflection of life's imperfections.'",
+                                "You proceed to follow the lady as she leads you inside of the temple."
                             ],
                             
                             # State 2 dialogue
                             [
-                                "Lady offers you a gem",
+                                "Entering the temple with the woman, your eyes are drawn to a dazzling purple gemstone resting upon an intricate pedestral." +
+                                " The sheer spiritual pressure emanating from the gem tells you of its power. You notice the woman extend her hand, and" +
+                                " with a subtle manipulation of spiritual energy, she gracefully guides the gem towards you." +
+                                " 'Behold the Amethyst Soul' she intones, her voice resonating with power. 'This gem holds the key to great power, especially" +
+                                " for someone of your cultivation realm.'",
                                 "taking the gem you begin to grow weaker rapidly as it sucks away your life force. You try to let go, but the gems power is too strong.",
                                 "The lady grows visibly angry as the world around you begins to shake and warp. Eventually the world around you" +
                                 " shatters revealing a dark and sinister room with a disgusting wraith in the center. "
@@ -1332,9 +1336,11 @@ class IllusionScene (Scene):
         self.frown_image = pygame.image.load('images/illusion-woman-frown2.png')
         self.walkway_image = pygame.image.load('images/walkway-to-room.png').convert_alpha()
         self.wraith_image = pygame.image.load('images/evil-ghost.png').convert_alpha()
+        self.gem = pygame.image.load('images/illusion-gem.png')
         
         # Set initial alpha value (0 = fully transparent, 255 = fully visible)
         self.alpha = 0
+        self.gem_alpha = 0
         
         # Create mask_surface for glitch effect
         self.mask_surface = pygame.Surface((1456, 816), pygame.SRCALPHA)
@@ -1385,8 +1391,7 @@ class IllusionScene (Scene):
             ],
             # State 3
             [
-                Clickable_text("Take the gem.", 460, 570, self.font, (0, 0, 0), 'death'),
-                Clickable_text("Ask about its purpose.", 460, 610, self.font, (0, 0, 0), 'examine'),
+                Clickable_text("Take the gem.", 460, 610, self.font, (0, 0, 0), 'death'),
                 Clickable_text("Refuse to take the gem.", 460, 650, self.font, (0, 0, 0), 'next')
             ]
             
@@ -1403,6 +1408,10 @@ class IllusionScene (Scene):
             # State 6 - Victory state
             [
                 Clickable_text("Move on to the final trial.", 610, 670, self.font, (0, 0, 0), 'final-trial')
+            ],
+            # State 7 - Continue button for temple scene
+            [
+                Clickable_text("Continue.", 675, 670, self.font, (0, 0, 0), 'previous scene')
             ]
         ]
         
@@ -1449,13 +1458,20 @@ class IllusionScene (Scene):
             
         elif self.transition_state == 2:
             if not self.mask_indicator:
+                
+                # Update to new prompt
                 self.previous_prompt = self.dialogue['illusion trial']['dialogue'][1][1]
-                self.prompt = "Lady leads you into a temple room."
+                self.prompt = self.dialogue['illusion trial']['dialogue'][2][0]
+        
+                # Transition to state 3 (Temple room) and set previous state
                 self.updateTransitionState(1)
+                self.previous_state = 3
+                
+                # Update the image to temple room, create delay for next prompt, and trigger glitch effect flag
                 self.update_image(pygame.image.load('images/temple-room.png'))
                 self.mask_indicator = True
                 self.image_delay = 1.0
-                self.promptDelay = 6.0
+                self.promptDelay = 5.0
                 
         elif self.transition_state == 3:
             self.previous_prompt = self.prompt
@@ -1471,11 +1487,15 @@ class IllusionScene (Scene):
             self.previous_image = self.illusion_woman_image
             
         elif self.transition_state == 2:
-            self.prompt = self.dialogue['illusion trial']['dialogue'][1][2]
-            self.previous_prompt = self.dialogue['illusion trial']['dialogue'][1][2]
-            self.updateTransitionState(1)
-            self.update_image(self.destruction_trial)
-            self.promptDelay = 2.0
+            
+            # Update dialogue
+            self.previous_prompt = "'Take your reward challenger' - Woman"
+            self.prompt = self.dialogue['illusion trial']['dialogue'][2][0]
+            
+            # Update image and state, and set previous state
+            self.updateTransitionState(5)
+            self.previous_state = 3
+            self.update_image(pygame.image.load('images/temple-room.png'))
     
     def start_combat(self):
         
@@ -1525,8 +1545,28 @@ class IllusionScene (Scene):
             # Draw background of scene
             super().drawScene(surface)
             
+            if self.promptDelay <= 0.0 and (self.transition_state == 3 or self.transition_state == 7):
+                # Reshow clickable options after glitches and prompt switch occur
+                for option in self.clickable_options[self.transition_state]:
+                    option.set_visibility(True)
+                    
+                # Show the reward gem
+                reward_gem = self.resize_image(self.gem, 3, 3)
+                reward_gem.set_alpha(self.gem_alpha)
+                surface.blit(reward_gem, (555, 20))
+                
+                # Update alpha value of gem
+                if self.gem_alpha < 255:
+                    self.gem_alpha += 1
+                else:
+                    self.gem_alpha = 255
+            
         else:
             
+            # Hide clickable options for the duration of the glitch
+            for option in self.clickable_options[self.transition_state]:
+                option.set_visibility(False)
+                
             # Create glitch effect for state 3
             if self.image_delay > 0.0:
                 glitch_intervals = 2
@@ -1550,7 +1590,7 @@ class IllusionScene (Scene):
                 # Draw the static image on the screen
                 surface.blit(image, (0, 0))
             
-            else:
+            else:   
                 self.mask_indicator = False
         
         # Draw image of illusionist woman
@@ -1562,7 +1602,7 @@ class IllusionScene (Scene):
         else:
             woman = self.illusion_woman_image
         
-        if self.transition_state == 3 or (self.transition_state == 5 and self.previous_state == 3):
+        if self.transition_state == 3 or self.transition_state == 7 or (self.transition_state == 5 and self.previous_state == 3):
             # flip the woman image horizontally
             woman = pygame.transform.flip(woman, True, False)
             surface.blit(woman, (500, 0))
