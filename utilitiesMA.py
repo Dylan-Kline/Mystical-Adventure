@@ -1,5 +1,5 @@
 # @ utilitiesMA.py
-# Utilities for game classes
+# Utilities for scenes @ScenesMA.py
 import pygame
 
 class Clickable_text:
@@ -16,13 +16,14 @@ class Clickable_text:
         self.text_surfaces = list() # Holds each rendered text_surface to draw
         self.rects = list() # Holds the corresponding rect objects for each text_surface
         self.wrap_text() # Wraps the text and creates text surfaces and their rects
-        
+    
+    # Draws the clickable text onto the main surface   
     def draw(self, surface):
         if self.visible:
             for text_surface in self.text_surfaces:
                 surface.blit(text_surface[0], text_surface[1])
         
-    # tells if text box was clicked
+    # Returns whether the clickable text object has been clicked by user
     def was_clicked(self, mouse_pos):
         if self.visible:
             for rect in self.rects:
@@ -30,7 +31,7 @@ class Clickable_text:
                     return True
         return False
     
-    # Changes text color if mouse hovers over it
+    # Changes text color if mouse hovers over clickable text
     def hovering(self, mouse_pos):
         is_hovering = any(rect.collidepoint(mouse_pos) for rect in self.rects)
         color = self.hover_color if is_hovering else self.color
@@ -61,6 +62,7 @@ class Clickable_text:
         
         return (position_X, position_Y)
 
+    # Wraps the text to a new line on the dialogue box in each scene, so the text does not overflow out of the text box
     def wrap_text(self):
         
         # Maximum width of text

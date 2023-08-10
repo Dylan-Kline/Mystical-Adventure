@@ -89,14 +89,9 @@ class Scene:
                             "You attempt to find a way to the open the formation, however as you get close your sense of danger screams at you. " +
                             "Quickly backing away, you turn towards your only way out...the mysterious archway.",
                 'options':['Enter the archway regardless of the potential danger...', 'Examine the etchings', 'Attempt to open the door and leave', 'Continue']
-                # when you examine the etchings you find a clue for the trials to come (the etching on the left side speak of great wisdom,
-                # while the etchings on the right hint at power through destruction)
-                # for this scene change the discription to include the door slamming shut behind you locking you in
-                # have an option for trying to find a way to escape, in which it will say 'there seems to be an Array formation blocking your way
-                # you try to find a way to open the formation, however your sense of danger screams at you as you get close...quickly backing away
-                # you turn towards your only way out...the gate.  
+  
             },
-        "trial1": #add another scene before the gat scene where you are traveling along a path and you arrive to a abyssal cathedral
+        "trial1": 
             {
                 'prompt':"Entering the archway, you find a descending staircase that guides you into the depths of darkness." +
                             " As you venture downwards, a faint purple glow emerges, casting an eerie light on path ahead. " +
@@ -149,9 +144,6 @@ class Scene:
                            "To relinquish one's humanity, embracing a path of detachment and isolation.",
                            "Rid oneself of worldy desires and ambitions."]
                 
-                # trial of wisdom where a player must answer a series of thought-provoking questions and philosophical dilemmas.
-                # the player's answers determine their success in gaining the portal's wisdom (aka cultivation increase)
-                # have the monster give a brief summary of the type of person the player is after their answers to each question
             },
         "destruction portal":
             {
@@ -264,6 +256,14 @@ class Scene:
                                 "taking the gem you begin to grow weaker rapidly as it sucks away your life force. You try to let go, but the gems power is too strong.",
                                 "The lady grows visibly angry as the world around you begins to shake and warp. Eventually the world around you" +
                                 " shatters revealing a dark and sinister room with a disgusting wraith in the center. "
+                            ],
+                            
+                            # State 3 dialogue
+                            [
+                                '''The refusal of the gem sends a shock through the illusionary woman, her carefully composed visage flickering with a sudden flash of rage.
+                                 The air in the temple room begins to crackle with tension, and the once-stable illusion starts to waver and distort. "You... refuse?" she stammers, 
+                                 her voice losing its melodic charm. "Such a gift is not to be denied." Her eyes narrow, and the beautiful surroundings begin to crumble, 
+                                 hints of the true wraithlike nature breaking through as the illusion's control slips.'''
                             ]
                 ]                
             },
@@ -1334,13 +1334,17 @@ class IllusionScene (Scene):
         self.image = pygame.image.load('images/illusion-woman.png')
         self.illusion_woman_image = pygame.image.load('images/illusion-woman.png')
         self.frown_image = pygame.image.load('images/illusion-woman-frown2.png')
+        self.illusion_woman_no_background = pygame.image.load('images/illusion-woman-no-background.png').convert_alpha()
         self.walkway_image = pygame.image.load('images/walkway-to-room.png').convert_alpha()
+        self.temple_room_image = pygame.image.load('images/temple-room.png').convert_alpha()
         self.wraith_image = pygame.image.load('images/evil-ghost.png').convert_alpha()
         self.gem = pygame.image.load('images/illusion-gem.png')
         
-        # Set initial alpha value (0 = fully transparent, 255 = fully visible)
+        # Set initial alpha values (0 = fully transparent, 255 = fully visible)
         self.alpha = 0
         self.gem_alpha = 0
+        self.temple_alpha = 255
+        self.woman_alpha = 255
         
         # Create mask_surface for glitch effect
         self.mask_surface = pygame.Surface((1456, 816), pygame.SRCALPHA)
@@ -1391,8 +1395,8 @@ class IllusionScene (Scene):
             ],
             # State 3
             [
-                Clickable_text("Take the gem.", 460, 610, self.font, (0, 0, 0), 'death'),
-                Clickable_text("Refuse to take the gem.", 460, 650, self.font, (0, 0, 0), 'next')
+                Clickable_text("Take the gem.", 460, 630, self.font, (0, 0, 0), 'death'),
+                Clickable_text("Refuse to take the gem.", 460, 670, self.font, (0, 0, 0), 'next')
             ]
             
             # Implement a few flashes of the real wraith image after taking the gem, and then include a swooshing sound effect like your energy is being sucked away
@@ -1431,20 +1435,22 @@ class IllusionScene (Scene):
             
         elif self.transition_state == 3:
             if self.promptDelay <= 0.0:
-                self.prompt = "The illusion breaks and the monster appears"
+                self.prompt = self.dialogue['illusion trial']['dialogue'][3][0]
                 self.updateTransitionState(1)
                 self.update_image(self.wraith_image)
+                self.gem_alpha = 255 # Set the gem alpha to max incase the player quickly clicks on the refuse gem option
+                self.image_delay = 2.0
             
         elif self.previous_state == 0 and self.transition_state == 1 and self.image_delay <= 0.0:
             self.prompt = self.dialogue['illusion trial']['prompt'][1]
             self.updateTransitionState(1)
             self.update_image(self.walkway_image)
-            self.illusion_woman_image = pygame.image.load('images/illusion-woman-no-background.png')
+            self.illusion_woman_image = self.illusion_woman_no_background
             
         elif self.previous_state == 2 and self.transition_state == 1:
             self.prompt = self.dialogue['illusion trial']['dialogue'][0][0]
             self.updateTransitionState(2)
-            self.update_image(pygame.image.load('images/temple-room.png'))
+            self.update_image(self.temple_room_image)
                  
     def examine(self):
         
@@ -1542,6 +1548,7 @@ class IllusionScene (Scene):
     def drawScene(self, surface):
         
         if not self.mask_indicator:
+               
             # Draw background of scene
             super().drawScene(surface)
             
@@ -1560,7 +1567,33 @@ class IllusionScene (Scene):
                     self.gem_alpha += 1
                 else:
                     self.gem_alpha = 255
-            
+                    
+            if self.transition_state == 4:
+                
+                if self.temple_alpha > 0:
+                    self.initialize_glitch(surface, self.frown_image, 2, 1.0, 15, 50)
+                    
+                # Draw the temple room, gem, and woman images over the wraith image
+                surface.blit(self.temple_room_image, (0, 0))
+                
+                woman = pygame.transform.flip(self.illusion_woman_image, True, False)
+                surface.blit(woman, (500, 0))
+                
+                reward_gem = self.resize_image(self.gem, 3, 3)
+                surface.blit(reward_gem, (555, 20))
+                
+                
+                # Update the alpha value of the temple, gem, and woman images
+                self.temple_room_image.set_alpha(self.temple_alpha)
+                self.illusion_woman_image.set_alpha(self.woman_alpha)
+                self.gem.set_alpha(self.gem_alpha)
+                
+                if self.temple_alpha > 0 and self.woman_alpha > 0 and self.gem_alpha > 0:
+                    alpha_decrease = 2
+                    self.temple_alpha -= alpha_decrease
+                    self.woman_alpha -= alpha_decrease
+                    self.gem_alpha -= alpha_decrease
+                             
         else:
             
             # Hide clickable options for the duration of the glitch
@@ -1569,26 +1602,8 @@ class IllusionScene (Scene):
                 
             # Create glitch effect for state 3
             if self.image_delay > 0.0:
-                glitch_intervals = 2
-                glitch_duration = 1.0 / glitch_intervals
                 
-                # Determine the glitch state based on current image_delay
-                glitch_state = int(self.image_delay / glitch_duration) % 2
-                
-                if glitch_state == 1:
-                    self.mask_surface.fill((0, 0, 0, 0))
-                
-                    self.create_glitch_mask(self.mask_surface, num_glitches=1, max_size=50)
-                
-                    # Apply the burn-through effect to the static image
-                    image = self.glitch_effect(self.wraith_image, self.image, self.mask_surface)
-                    
-                else:
-                    image = self.image
-                    
-                surface.fill((0, 0, 0))
-                # Draw the static image on the screen
-                surface.blit(image, (0, 0))
+                self.initialize_glitch(surface, self.wraith_image, 2, 1.0, 1, 50)
             
             else:   
                 self.mask_indicator = False
@@ -1629,6 +1644,33 @@ class IllusionScene (Scene):
         if image is not None:
             self.previous_image = self.image
             self.image = image   
+    
+    def initialize_glitch(self, surface, glitch_image, intervals:int, duration:float, num_of_glitches:int, max_size_of_glitch:int):
+        
+        glitch_duration = duration / intervals
+        
+        # Create a temporary surface to draw the glitch effect on
+        glitch_surface = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+        
+        # Determine the glitch state based on current image_delay
+        glitch_state = int(self.image_delay / glitch_duration) % 2
+        
+        if glitch_state == 1:
+            self.mask_surface.fill((0, 0, 0, 0))
+        
+            self.create_glitch_mask(self.mask_surface, num_glitches=1, max_size=50)
+        
+            # Apply the burn-through effect to the static image
+            image = self.glitch_effect(glitch_image, self.image, self.mask_surface)
+            
+        else:
+            image = self.image
+            
+        #surface.fill((0, 0, 0))
+        glitch_surface.blit(image, (0, 0))
+        # Draw the static image on the screen
+        surface.blit(glitch_surface, (0, 0))
+        #surface.blit(image, (0, 0))
     
     def glitch_effect(self, foreground_image, background_image, mask_surface):
         # Apply the glitch mask to the foreground image using the BLEND_RGBA_MULT blending mode
@@ -2020,8 +2062,8 @@ class DeathScene (Scene):
         
         # Scene image and prompt 
         self.prompt = prompt
-        self.image = self.cave_skeleton
-        self.drawUIDelay = 1.0
+        self.image = pygame.image.load('images/death-world.png')
+        self.drawUIDelay = 0.0
         
         # Font
         self.font_path = self.default_font
@@ -2034,7 +2076,8 @@ class DeathScene (Scene):
         
         self.clickable_options = [
             [
-                Clickable_text("Begin anew.", 675, 670, self.font, (0, 0, 0), 'start')
+                Clickable_text("Begin anew.", 665, 640, self.font, (0, 0, 0), 'start'),
+                Clickable_text("Exit.", 697, 670, self.font, (0, 0, 0), 0)
             ]
         ]
         

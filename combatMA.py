@@ -67,7 +67,7 @@ class Combat:
                 print(f"Monster does {opponent_dmg} damage to player.")
             
         else:  
-            # If player decides to flee
+            # If player decides to flee reset their defense to pre-buff value and full heal their hp
             if self.player_action == 'Flee':
                 self.player.reset_defence()
                 self.player.full_heal()
@@ -90,14 +90,4 @@ class Combat:
         self.player_action = action
         
 
-#------------------------ Ideas for combat scenes and the destruction trial combat in particular ----------------------------#     
-        
-# Have this class be connected to the combat scene that will be used throughout the game for the boss battles and minions.
-# you can have it so the player can flee in minion battles but not boss battles, 
-# the scene tranisitions back to the scene used to initiate combat if the player does decide to do so. Then I need to delete the
-# option used to enter combat so the player can no longer gain the rewards from defeating the monster.
-# Though I will need to figure out how to allow the player to continue through the forest. Or maybe not since if they choose to flee
-# in the first place then they are most likely either dumb and low hp and can no longer fight. In this case for the destruction trial
-# the player will be missing the extra chance gained from fighting abyssal mobs, and therefore will have a chance to die from the rune
-# energy destroying them from within. 
             
