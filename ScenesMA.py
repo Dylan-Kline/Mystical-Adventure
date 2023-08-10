@@ -263,7 +263,10 @@ class Scene:
                                 '''The refusal of the gem sends a shock through the illusionary woman, her carefully composed visage flickering with a sudden flash of rage.
                                  The air in the temple room begins to crackle with tension, and the once-stable illusion starts to waver and distort. "You... refuse?" she stammers, 
                                  her voice losing its melodic charm. "Such a gift is not to be denied." Her eyes narrow, and the beautiful surroundings begin to crumble, 
-                                 hints of the true wraithlike nature breaking through as the illusion's control slips.'''
+                                 hints of the true wraithlike nature breaking through as the illusion's control slips.''',
+                                 '''With a decisive strike, you pierces the wraith's core, causing it to let out an otherworldly scream. 
+                                 Its form disintegrates into shadowy wisps, the illusion fully broken, leaving behind only the chilling echo of its death as a sudden 
+                                 surge of pure spiritual energy enters your core. It seems to be your reward for this trial.'''
                             ]
                 ]                
             },
@@ -504,6 +507,14 @@ class Scene:
         
         return scaled_image
     
+    def draw_prompt(self, prompt:str|bytes|None, x:int, y:int, color):
+
+        if color is None:
+            color = (0, 0, 0)
+            
+        text_surface = self.font.render(prompt, True, color)
+        self.surface.blit(text_surface, (x, y))
+        
 class SceneManager:
     def __init__(self) -> None:
         self.scenes = {
@@ -1316,15 +1327,7 @@ class DestructionScene (Scene):
                   
         else:
             super().drawScene(surface)
-        
-    def draw_prompt(self, prompt:str|bytes|None, x:int, y:int, color):
-        
-        if color is None:
-            color = (0, 0, 0)
-            
-        text_surface = self.font.render(prompt, True, color)
-        self.surface.blit(text_surface, (x, y))
-
+    
 class IllusionScene (Scene):
     
     def __init__(self, scene_manager:SceneManager) -> None:
@@ -1524,7 +1527,7 @@ class IllusionScene (Scene):
         
             # Update prompt
             self.previous_prompt = self.prompt
-            self.prompt = "hi"
+            self.prompt = self.dialogue['illusion trial']['dialogue'][3][1]
             
             # Increased player's level by 2 from victory and heal the player back to full
             self.scene_manager.player.levelUp(2)
@@ -1593,7 +1596,7 @@ class IllusionScene (Scene):
                     self.temple_alpha -= alpha_decrease
                     self.woman_alpha -= alpha_decrease
                     self.gem_alpha -= alpha_decrease
-                             
+
         else:
             
             # Hide clickable options for the duration of the glitch
@@ -1638,7 +1641,11 @@ class IllusionScene (Scene):
             self.create_text_box(surface, self.previous_prompt, self.font) 
         
         else:
+            
             super().drawUI(surface)
+            
+            if self.combat_outcome == 1:
+                self.draw_prompt("Your have advanced two cultivation stages!", 535, 600, None)
      
     def update_image(self, image):
         if image is not None:
