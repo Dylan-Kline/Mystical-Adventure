@@ -47,7 +47,7 @@ class Combat:
             
             # Player's turn
             if self.player_action == "Defend":
-                self.player.temp_buff_defence(2)
+                self.player.temp_buff_defence(1)
                 player_dmg = 0
             else:
                 if self.opponent_action == "Defend":
@@ -65,6 +65,9 @@ class Combat:
             if self.opponent_action == "Attack":
                 opponent_dmg = self.attack(self.opponent, self.player)
                 print(f"Monster does {opponent_dmg} damage to player.")
+                
+            if not self.player.isAlive():
+                return 0
             
         else:  
             # If player decides to flee reset their defense to pre-buff value and full heal their hp
