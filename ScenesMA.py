@@ -41,17 +41,6 @@ class Scene:
     # Surface variable
     surface = None
     
-    # Prompts, options
-    # Note to self: Make the death portal be only a 30% chance of living, and if the player lives then they gain two levels more than the life portal.
-    # Or maybe I should make the life portal harder to be ironic xD. Either way my idea is to gear/level the character in various ways depending on
-    # what the user chooses. This will in turn make the final trial: the boss battle easier (higher percent of winning) or harder (lower percent of winning.)
-    # The general outline of the text adventure will be as follows:
-    # temple -> Gate -> life/death portals-> trial 2 (choice 1 or 2) -> final trial: fight against an abyss lord/demon -> if the player wins (they get a treasure that will
-    # advance their cultivation immensely, while also giving them abyssal powers (make a cutscene at the end for a cool picture of abyss energy
-    # whirling around a non descript person. Then at the very end teleport the player to a cliff with a beautiful view of a mystical forest and waterfall.)
-    # / Else its game over for the player and they have to restart.
-    # make it so that if the player reaches the boss fight while taking the life portal, they are severely disadvangtaged and barely live after the battle.
-    # for the cowards end make it so your peers eventuually overtake you and your life ends in a dasterly plot for your resources.
     dialogue = {
         "temple":
             {
@@ -1331,9 +1320,13 @@ class DestructionScene (Scene):
 class IllusionScene (Scene):
     
     def __init__(self, scene_manager:SceneManager) -> None:
-        # Image and text variables
+        # Scene text
         self.prompt = self.dialogue['illusion trial']['prompt'][0]
-        self.death_prompt = "Dead."
+        self.death_prompt = '''You reach out and grab the gem, triggering a soul wrenching pain, quickly you notice that your very soul is being siphoned away 
+        by the deathly beautiful gem. In desperation you attempt to remove the soul-devouring gem from your hand. However, the gem does not budge in the slightest. 
+        Time seems to pass by slowly as your life fades away to darkness.'''
+        
+        # Scene images
         self.image = pygame.image.load('images/illusion-woman.png')
         self.illusion_woman_image = pygame.image.load('images/illusion-woman.png')
         self.frown_image = pygame.image.load('images/illusion-woman-frown2.png')
@@ -2057,7 +2050,10 @@ class CombatScene (Scene):
             
     def handle_player_death(self):
         print("Player Died") 
-        self.scene_manager.transition_to_death("Died from combat.")
+        self.scene_manager.transition_to_death('''As your vision fades to darkness you find yourself inside of a 
+                                               hellish landscape, with no end in sight. From your fragmented memories and the 
+                                               stories of immortals you've heard since young, you piece together that you are 
+                                               in the mythical underworld. Perhaps you can find a way to reincarnate.''')
         
     def handle_player_fled(self):
         print("Player Fled")
