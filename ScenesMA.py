@@ -7,14 +7,11 @@ from utilitiesMA import Clickable_text
 from combatMA import Combat
 
 # Current to do list:
-# Destruction Trial to do list
 # - Make monster classes for combat scenes
-# - later on fine tune the combat values to make it fair
-# create illusion trial (working on now)
+# - later on fine tune the combat values to make it fair (tweaked the combat system to include more variety,
+#   now I need to create each monster class and adjust their attack/defence values and include their attack patterns
+#   in determine_opponent_action() in @combatMA.py
 # create final boss fight (the porci trial of pine)
-# - use a chatgpt api to create some fight scene dialogue that is unique and situational
-#   such as when chatgpt reaches a certain hp or when it defends it says something etc.
-# - have chatgpt decide its own moves based on what variables it is given
 # Add background music to the game
 
 class Scene:
@@ -1638,7 +1635,7 @@ class IllusionScene (Scene):
             super().drawUI(surface)
             
             if self.combat_outcome == 1:
-                self.draw_prompt("Your have advanced two cultivation stages!", 535, 600, None)
+                self.draw_prompt("You have advanced two cultivation stages!", 535, 600, None)
      
     def update_image(self, image):
         if image is not None:
