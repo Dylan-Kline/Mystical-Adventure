@@ -3,6 +3,7 @@
 import random
 import math
 from characterMA import Character
+from Wolf import Wolf
 
 class Combat:
     
@@ -12,6 +13,7 @@ class Combat:
         self.player = character
         self.player_action = None
         self.previous_player_action = None
+        self.player_defence_buff_amount = 4
         
         # Opponent variables
         self.opponent = monster
@@ -19,7 +21,9 @@ class Combat:
         self.opponent_max_attacks = None # the number of attacks the monster will perform before defending
         self.opponent_current_attacks = None # the current number of attacks left before the monster defends
         
-        #if isinstance(monster, Wolf):
+        if isinstance(monster, Wolf):
+            self.opponent_max_attacks = 1
+            self.opponent_current_attacks = self.opponent_max_attacks
             
     
     def attack(self, attacker, target):
@@ -71,14 +75,17 @@ class Combat:
             if self.player_action == "Defend":
                 # If the player defends consecutively, decrease their defence
                 if self.previous_player_action is not None and self.previous_player_action != 'Defend':
-                    self.player.temp_buff_defence(2)
+                    self.player.temp_buff_defence(self.player_defence_buff_amount)
+                    if self.player_defence_buff_amount > 1:
+                        self.player_defence_buff_amount -= 1
+                      
                 else:
-                    self.player.temp_buff_defence(-1)
+                    self.player.temp_buff_defence(-2)
                     
                 player_dmg = 0
             else:
                 if self.opponent_action == "Defend":
-                    self.opponent.temp_buff_defence(2)
+                    self.opponent.temp_buff_defence(1)
                 player_dmg = self.attack(self.player, self.opponent)
                 
             print(f"The player does {player_dmg} damage to the monster.")
@@ -109,12 +116,13 @@ class Combat:
             
     def determine_opponent_action(self):
         
-        decision_value = random.randint(0, 10)
-        
-        if decision_value in range(0, 10, 2):
-            self.opponent_action = "Defend"
-        else:
+        # Monster attacks until a certain amount, then the monster will defend once before continuing the pattern
+        if self.opponent_current_attacks > 0:
             self.opponent_action = "Attack"
+            self.opponent_current_attacks -= 1
+        else:
+            self.opponent_action = "Defend"
+            self.opponent_current_attacks = self.opponent_max_attacks
             
         print(self.opponent_action)
         

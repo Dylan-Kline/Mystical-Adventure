@@ -3,6 +3,7 @@ import random
 import numpy as np
 import math
 from characterMA import Character
+from Wolf import Wolf
 from utilitiesMA import Clickable_text
 from combatMA import Combat
 
@@ -1070,7 +1071,7 @@ class DestructionScene (Scene):
                 self.scene_manager.player.levelUp(1)
                 self.scene_manager.player.status()
                 
-                # the floating surroundings begin to show a fragmented reality as you get closer to the rune
+                # Draw reward prompt
             else:
                 prompt = "Luck favors the brave...atleast most of the time."
                 self.scene_manager.transition_to_death(prompt)
@@ -1128,7 +1129,7 @@ class DestructionScene (Scene):
     def start_combat(self):
         
         if self.combat_one == 0:
-            opponent = Character()
+            opponent = Wolf()
             monster_image = self.monster_image
         
         # Create Combat scene object with opponent to fight
@@ -1149,7 +1150,10 @@ class DestructionScene (Scene):
             
             # Update prompt
             self.previous_prompt = self.prompt
-            self.prompt = "hi"
+            self.prompt = """After a fierce battle that seemed to stretch for an eternity, you deliver a final, 
+            decisive blow to the draconic wolf. Its haunting roar of pain and defiance echoes one last time 
+            before its colossal form crashes to the ground, lifeless. The air is thick with tension 
+            and relief as the battle for your survival is brought to an end."""
             
             # Increment to victory transition state
             states_increment = 5 - self.transition_state
@@ -1284,7 +1288,9 @@ class DestructionScene (Scene):
             
         # Draw reward prompt for successfully obtained the rune when rune-shard image is almost visible    
         elif self.transition_state == 6 and self.alpha >= 240:
-            self.draw_prompt("Gained: +20% Increased Attack Damage", 555, 645, None)
+            self.font = pygame.font.Font(self.font_path, 22)
+            self.draw_prompt("Gained: +20% Increased Attack Damage and a cultivation stage increase.", 485, 645, None)
+            self.font = pygame.font.Font(self.font_path, 27)
         
     def drawScene(self, surface):
         
@@ -1307,7 +1313,7 @@ class DestructionScene (Scene):
             
             # Increase alpha to fade in foreground image
             if self.image_delay <= 0:
-                self.alpha += 1
+                self.alpha += 2
                 if self.alpha > 255:
                     self.alpha = 255
                   
