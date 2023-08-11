@@ -8,7 +8,6 @@ from utilitiesMA import Clickable_text
 from combatMA import Combat
 
 # Current to do list:
-# - Make monster classes for combat scenes
 # - later on fine tune the combat values to make it fair (tweaked the combat system to include more variety,
 #   now I need to create each monster class and adjust their attack/defence values and include their attack patterns
 #   in determine_opponent_action() in @combatMA.py

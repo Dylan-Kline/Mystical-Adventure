@@ -13,13 +13,19 @@ class Combat:
         self.player = character
         self.player_action = None
         self.previous_player_action = None
-        self.player_defence_buff_amount = 4
+        self.player_defence_buff_amount = 4 # Max amount that the player's defence increases when they defend (decreases by 1 each successive defend action)
+        self.player_full_dmg = False # Flag for whether the player does full dmg in attack()
         
         # Opponent variables
         self.opponent = monster
         self.opponent_action = None
         self.opponent_max_attacks = None # the number of attacks the monster will perform before defending
+        self.opponent_full_dmg = False # Flag for whether the monster does full dmg during counterattack phase of attack()
         
+        # Half damage flag for counterattack scenario in attack()
+        self.half_dmg = False
+        
+        # Determine the monster's attack pattern based on type
         if self.opponent.monster_type == 'wolf':
             self.opponent_max_attacks = 1
             
@@ -48,10 +54,32 @@ class Combat:
             else:
                 critical_multi = 0.0
         
-        # Maybe add a random chance for one attacker to do full damage and the other to only do half damage
         # Counterattack scenario where both combatants attack (halves the damage they deal/take)
+        # @chance_full_dmg is used to determine which combatant will do full dmg during counterattack scenario
+        chance_full_dmg = random.random()
         if self.player_action == 'Attack' and self.opponent_action == 'Attack':
-            damage_dealt = attacker.attack_damage // 2
+            
+            if self.player_full_dmg != True and self.opponent_full_dmg != True and self.half_dmg != True:
+                if chance_full_dmg < .33:
+                    self.opponent_full_dmg = True    
+                elif .33 < chance_full_dmg <= .66:
+                    self.player_full_dmg = True
+                else:
+                    self.half_dmg = True
+            
+            if self.player_full_dmg == True and attacker == self.player:
+                damage_dealt = attacker.attack_damage      
+            elif self.opponent_full_dmg == True and attacker == self.opponent:
+                damage_dealt = attacker.attack_damage  
+            else:
+                damage_dealt = attacker.attack_damage // 2
+            
+            # Reset full damage flags for both combatants    
+            if attacker == self.opponent:
+                self.player_full_dmg = False
+                self.opponent_full_dmg = False  
+            
+            print(self.player_full_dmg, self.opponent_full_dmg)   
         else:
             damage_dealt = attacker.attack_damage
             
