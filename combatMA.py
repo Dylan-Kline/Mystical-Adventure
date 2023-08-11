@@ -3,11 +3,11 @@
 import random
 import math
 from characterMA import Character
-from Wolf import Wolf
+from Monster import Monster
 
 class Combat:
     
-    def __init__(self, character:Character, monster) -> None:
+    def __init__(self, character:Character, monster:Monster) -> None:
         
         # Player variables
         self.player = character
@@ -19,11 +19,17 @@ class Combat:
         self.opponent = monster
         self.opponent_action = None
         self.opponent_max_attacks = None # the number of attacks the monster will perform before defending
-        self.opponent_current_attacks = None # the current number of attacks left before the monster defends
         
-        if isinstance(monster, Wolf):
+        if self.opponent.monster_type == 'wolf':
             self.opponent_max_attacks = 1
-            self.opponent_current_attacks = self.opponent_max_attacks
+            
+        elif self.opponent.monster_type == 'wraith':
+            self.opponent_max_attacks = 2
+            
+        elif self.opponent.monster_type == 'porci':
+            self.opponent_max_attacks = 3
+            
+        self.opponent_current_attacks = self.opponent_max_attacks # the current number of attacks left before the monster defends
             
     
     def attack(self, attacker, target):
@@ -42,6 +48,7 @@ class Combat:
             else:
                 critical_multi = 0.0
         
+        # Maybe add a random chance for one attacker to do full damage and the other to only do half damage
         # Counterattack scenario where both combatants attack (halves the damage they deal/take)
         if self.player_action == 'Attack' and self.opponent_action == 'Attack':
             damage_dealt = attacker.attack_damage // 2
@@ -79,7 +86,7 @@ class Combat:
                     if self.player_defence_buff_amount > 1:
                         self.player_defence_buff_amount -= 1
                       
-                else:
+                elif self.previous_player_action == 'Defend':
                     self.player.temp_buff_defence(-2)
                     
                 player_dmg = 0

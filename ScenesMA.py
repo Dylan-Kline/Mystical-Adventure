@@ -3,7 +3,7 @@ import random
 import numpy as np
 import math
 from characterMA import Character
-from Wolf import Wolf
+from Monster import Monster
 from utilitiesMA import Clickable_text
 from combatMA import Combat
 
@@ -1129,7 +1129,7 @@ class DestructionScene (Scene):
     def start_combat(self):
         
         if self.combat_one == 0:
-            opponent = Wolf()
+            opponent = Monster('wolf', 120, .05, 29, 7)
             monster_image = self.monster_image
         
         # Create Combat scene object with opponent to fight
@@ -1505,7 +1505,7 @@ class IllusionScene (Scene):
     def start_combat(self):
         
         if self.combat_one == 0:
-            monster = Character()
+            monster = Monster('wraith', 150, 0.0, 30, 3)
         
         # Create wraith mini-boss combat scene and return it to the scene manager  
         combat_scene = CombatScene(monster, self.wraith_image, self.scene_manager)
@@ -1766,7 +1766,7 @@ class FinalTrial (Scene):
     def start_combat(self):
         
         if self.combat_one == 0:
-            monster = Character()
+            monster = Monster('porci', 200, 0.1, 32, 9)
         
         # Create porcupine boss combat scene and return it to the scene manager  
         combat_scene = CombatScene(monster, self.image, self.scene_manager)
