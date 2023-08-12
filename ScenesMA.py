@@ -895,7 +895,7 @@ class WisdomScene (Scene):
             ],
             # option to advance to the next trial
             [
-                Clickable_text("Advance to the next trial" , 610, 670, self.font, (0, 0, 0), 'trial2')
+                Clickable_text("Advance to the next trial" , 610, 670, self.font, (0, 0, 0), 'illusion')
             ],
             # options for failure of trial
             [
