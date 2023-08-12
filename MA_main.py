@@ -19,8 +19,6 @@ def main():
     scene_manager.transition_to_scene('start') # Set this to whatever scene you want to start with (useful for testing changes to scenes)
     #scene_manager.transition_to_death("dead") # Uncomment this to test any death scene changes
     
-    
-    # Make another outer loop while True: to allow for restarting the game if a player dies.
     running = True # Game Status (off/on)
     while running:
         
