@@ -1,3 +1,4 @@
+# @Monster.py
 # Wolf monster class for destruction trial scene in @ScenesMA.py
 
 class Monster:

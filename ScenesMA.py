@@ -1,17 +1,11 @@
 import pygame
 import random
-import numpy as np
-import math
 from characterMA import Character
 from Monster import Monster
 from utilitiesMA import Clickable_text
 from combatMA import Combat
 
 # Current to do list:
-# - later on fine tune the combat values to make it fair (tweaked the combat system to include more variety,
-#   now I need to create each monster class and adjust their attack/defence values and include their attack patterns
-#   in determine_opponent_action() in @combatMA.py
-# create final boss fight (the porci trial of pine)
 # Add background music to the game
 
 class Scene:
@@ -261,7 +255,10 @@ class Scene:
                 'prompt':[
                     
                     # Final boss encounter text - 0 
-                    "Before you is porcupine of massive proportions, guarding what seems to be a extremely precious cosmic fruit.",
+                    "Before you stands a massive porcupine demon, its quills bristling menacingly in the bright golden light. At its core, " +
+                    "a radiant golden circle pulses, marking the very spot where its heart beats with an otherworldly glow. " +
+                    "Nestled on the ground before this majestic guardian is a mesmerizing cosmic fruit shimmering with a golden luminescence, " +
+                    "promising untold power and wisdom to its possessor. Obtaining this fruit would heavily increase your cultivation.",
                     
                     # Final boss battle victory text - 1
                     "After a fierce battle the cosmic fruit lays within your hands" +
@@ -561,6 +558,13 @@ class SceneManager:
  
         else:
             print(f"Scene with ID {sceneID} does not exist")
+            
+        # For testing purposes for combatScene
+        # self.player.increase_flat_damage(3) # Draconis fangs upgrade
+        # self.player.increase_percent_damage(.2) # Rune upgrade
+        # self.player.levelUp(1) # Rune upgrade
+        # self.player.levelUp(2) # wraith upgrade
+        
      
     def transition_to_death(self, prompt):
         
@@ -1061,7 +1065,7 @@ class DestructionScene (Scene):
                 self.updateTransitionState(6)
                 
                 # Set image delay to # seconds
-                self.image_delay = 4.0
+                self.image_delay = 3.0
                 
                 # Player gains +20% increased damage overall
                 self.scene_manager.player.increase_percent_damage(.2)
@@ -1288,7 +1292,7 @@ class DestructionScene (Scene):
         # Draw reward prompt for successfully obtained the rune when rune-shard image is almost visible    
         elif self.transition_state == 6 and self.alpha >= 240:
             self.font = pygame.font.Font(self.font_path, 22)
-            self.draw_prompt("Gained: +20% Increased Attack Damage and a cultivation stage increase.", 485, 645, None)
+            self.draw_prompt("Gained: +20% Increased Attack Damage and a cultivation stage increase.", 475, 645, None)
             self.font = pygame.font.Font(self.font_path, 27)
         
     def drawScene(self, surface):
@@ -1504,7 +1508,7 @@ class IllusionScene (Scene):
     def start_combat(self):
         
         if self.combat_one == 0:
-            monster = Monster('wraith', 150, 0.0, 30, 3)
+            monster = Monster('wraith', 130, 0.0, attack_damage=40, defence=3)
         
         # Create wraith mini-boss combat scene and return it to the scene manager  
         combat_scene = CombatScene(monster, self.wraith_image, self.scene_manager)
@@ -1760,12 +1764,11 @@ class FinalTrial (Scene):
         # Slowly have the red spiritual core take over the image of the regular golden core
         if self.transition_state == 2:
             self.corruption_effect(surface)
-        
-        
+               
     def start_combat(self):
         
         if self.combat_one == 0:
-            monster = Monster('porci', 200, 0.1, 32, 9)
+            monster = Monster('porci', 150, 0.2, 47, 6)
         
         # Create porcupine boss combat scene and return it to the scene manager  
         combat_scene = CombatScene(monster, self.image, self.scene_manager)
@@ -1866,7 +1869,7 @@ class EndScene(Scene):
 class CombatScene (Scene):
     
     # Add a defence UI bar to show the player their current defence
-    def __init__(self, opponent, monster_image, scene_manager):
+    def __init__(self, opponent, monster_image, scene_manager:SceneManager):
         
         # Scene image and prompt 
         self.prompt = ""
@@ -1888,7 +1891,7 @@ class CombatScene (Scene):
         # Combat Variables
         self.combat = None 
         self.combat_outcome = None
-        self.player = None
+        self.player = self.scene_manager.get_character()
         self.opponent = opponent
         self.combat_active = False
         
@@ -1920,8 +1923,6 @@ class CombatScene (Scene):
             self.updateTransitionState(1)
             
         self.combat_active = True
-        scene_manager_obj = SceneManager()
-        self.player = scene_manager_obj.get_character()
         self.combat = Combat(self.player, self.opponent)
         
     def process_events(self, events):

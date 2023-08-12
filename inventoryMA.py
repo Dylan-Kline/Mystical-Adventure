@@ -1,5 +1,5 @@
 # @ inventoryMA.py
-# This is the inventory class for your character
+# This is the inventory class for the player character
 
 class Inventory:
     
@@ -8,9 +8,6 @@ class Inventory:
         self.INVspace = quantity
         self.numItems = 0
     
-    # Inserts a new item into your inventory.
-    # If your inventory is full it asks you to select whether to discard the item 
-    # or replace an item in your inventory
     def insert(self, item):
         
         # Put new item in inventory if space allows
@@ -24,8 +21,6 @@ class Inventory:
             print("Inventory is full.")
             return None
     
-    # Discards a item from your inventory.
-    # Or returns that item was not found in your inventory
     def discard(self, item):
         
         # Remove given item from inventory and permamently discard it

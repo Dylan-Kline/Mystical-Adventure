@@ -1,7 +1,7 @@
 # @ combatMA.py
 # This is the combat class for the game
+
 import random
-import math
 from characterMA import Character
 from Monster import Monster
 
@@ -77,7 +77,8 @@ class Combat:
             # Reset full damage flags for both combatants    
             if attacker == self.opponent:
                 self.player_full_dmg = False
-                self.opponent_full_dmg = False  
+                self.opponent_full_dmg = False 
+                self.half_dmg = False 
             
             print(self.player_full_dmg, self.opponent_full_dmg)   
         else:
@@ -115,7 +116,7 @@ class Combat:
                         self.player_defence_buff_amount -= 1
                       
                 elif self.previous_player_action == 'Defend':
-                    self.player.temp_buff_defence(-2)
+                    self.player.temp_buff_defence(-1)
                     
                 player_dmg = 0
             else:

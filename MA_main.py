@@ -16,7 +16,7 @@ def main():
 
     # Scene manager
     scene_manager = SceneManager()
-    scene_manager.transition_to_scene('destruction') # Set this to whatever scene you want to start with (useful for testing changes to scenes)
+    scene_manager.transition_to_scene('start') # Set this to whatever scene you want to start with (useful for testing changes to scenes)
     #scene_manager.transition_to_death("dead") # Uncomment this to test any death scene changes
     
     

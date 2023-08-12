@@ -1,6 +1,6 @@
 # @ characterMA.py
-# This is the character class for the game
-############################## Work in progress ####################################
+# Player Character class
+
 from inventoryMA import Inventory
 
 class Character:
@@ -65,10 +65,12 @@ class Character:
         
         # Update Player stats
         self.max_hp += amount_of_levels * 10 # Increase player's max hp by 10 per new level
-        self.attack_damage += amount_of_levels * 2 # Increase player attack damage by 2 per new level
+        self.hp = self.max_hp
+        self.increase_flat_damage(amount_of_levels * 2) # Increase player attack damage by 2 per new level
         self.base_defence += amount_of_levels # Increase player's base defence by 1 point per new level
         self.reset_defence() # Update player defence to the new value
         print("You are now level: ", self.level)
+        self.status()
            
     # Kill character if status is false, returns isAlive status
     def death(self):
@@ -84,7 +86,7 @@ class Character:
             if self.hp <= 0:
                 self.death()
                 
-            print("Current HP: ", self.getHP())
+            print("Current Player HP: ", self.getHP())
         
     # retrieve character hp
     def getHP(self):
@@ -100,17 +102,17 @@ class Character:
     def set_max_hp(self, new_max):
         self.max_hp = max(new_max, self.max_hp)
      
-    def increase_percent_damage(self, percent_increase):
+    def increase_percent_damage(self, percent_increase:float):
+        '''Increases the Increased damage percentage for the player.'''
         self.increased_damage += percent_increase
         self.increase_flat_damage(None)
            
     def increase_flat_damage(self, attack_increase):
-        ''' Updates the flat damage value for the character, attack_increase=None for percent increase update.'''
+        ''' Updates the flat damage value for the character. Attack_increase=None to update base damage after increasing percent damage'''
         if attack_increase is None:
             attack_increase = 0
             
-        else:
-            self.attack_damage = int((self.attack_damage + attack_increase) * self.increased_damage)
+        self.attack_damage = int((self.attack_damage + attack_increase) * self.increased_damage)
             
         print("New damage: ", self.attack_damage)
         
