@@ -11,7 +11,7 @@ from combatMA import Combat
 class Scene:
     
     # File path for font library
-    Haseyo_font = "Fonts\\AnnyeongHaseyo.ttf"
+    Haseyo_font = "Fonts/AnnyeongHaseyo.ttf"
     default_font = None
     
     # Image path for UI
