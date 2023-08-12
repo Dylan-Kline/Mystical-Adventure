@@ -1,6 +1,6 @@
 # Mystical Adventure: A Graphical Text Adventure
 
-![Game Screenshot](https://github.com/Dylan-Kline/Mystical-Adventure/assets/100173809/295dc2c5-b10b-4d8d-bc19-a8e7cac53c1c)) 
+![Game Screenshot](https://github.com/Dylan-Kline/Mystical-Adventure/assets/100173809/295dc2c5-b10b-4d8d-bc19-a8e7cac53c1c)
 
 ## Overview!
 
