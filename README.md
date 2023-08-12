@@ -6,6 +6,9 @@
 
 Mystical Adventure is a text-based adventure game I made with the pygame framework as a way to solidify my foundation as I complete my Python to AI journey. The game includes graphical elements created by an AI called Midjourney, that immerse players in a Qi cultivator's life. In this game you will navigate through enchanting landscapes, face formidable adversaries, and make choices that will shape your destiny.
 
+### Ideas for the future:
+- [ ] Add background music to each scene
+
 ## Getting Started
 
 ### Version of Python used
@@ -25,3 +28,5 @@ python 3.10
 ## License
 
 Mystical Adventure is licensed under the MIT License. For more details, see the LICENSE.md file.
+
+
