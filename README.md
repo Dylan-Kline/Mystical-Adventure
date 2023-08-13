@@ -1,7 +1,7 @@
 # Mystical Adventure: A Graphical Text Adventure
 
 <div align="left">
-  <img src="https://raw.githubusercontent.com/Dylan-Kline/Mystical-Adventure/main/assets/100173809/12cf6155-fd0a-48a0-af59-77d8a612f79f" alt="Image">
+  <img src="https://github.com/Dylan-Kline/Mystical-Adventure/blob/9a32f9b891c37e0515f9419b844fbe932719e2c9/images/Start%20Screenshot.png" alt="Image">
 </div>
 
 
